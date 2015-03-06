@@ -1,11 +1,7 @@
-App Router
+web-router
 ==========
 
-Router for Web Components.  
-Dart translation of app-router that is compatible with Polymer.dart.
+web-router is a HTML5 router element for single page applications with declarative syntax.
+It is a modified Dart translation of app-router that is compatible with Polymer.dart.
 
-This is still EXPERIMENTAL and untested.
-
-See a demo and documentation at https://pjjjv.github.io/app-router-dart-test/demo.html.
-
-By pjv <ezelspinguin@gmail.com>. Original author of javascript version is Erik Ringsmuth <erik.ringsmuth@gmail.com>.
+The project is still in the EXPERIMENTAL stage and it is as for now untested.

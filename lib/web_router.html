@@ -1,0 +1,18 @@
+<!--
+    Web Router - dart
+    Copyright (c) 2015 Kornel Maczyński, pjv, Erik Ringsmuth. For other contributors, see Github.
+-->
+
+<link rel="import" href="../../packages/polymer/polymer.html">
+<link rel="import" href="../../packages/core_elements/core_ajax_dart.html">
+<link rel="import" href="../../packages/core_elements/core_animated_pages.html">
+
+<polymer-element name="web-router" attributes="init mode trailingSlash shadow typecast core_animated_pages transitions bindRouter">
+	<template>
+		<link href="web_router.css" rel="stylesheet">
+		<content></content>
+		<core-ajax-dart id="ajax" handleAs="text">
+		</core-ajax-dart>
+	</template>
+	<script type="application/dart" src="web_router.dart"></script>
+</polymer-element>
