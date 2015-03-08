@@ -35,7 +35,15 @@
 		<web-router mode="hash">
 			<web-route path="/">
 				<template>
-					<p>Inline template!</p>
+					<p>Inline template!
+						<!--<a is="pushstate-anchor" href="/test">test</a>-->
+						<a href="#/test">test</a>
+					</p>
+				</template>
+			</web-route>
+			<web-route path="/test">
+				<template>
+					<p>TEST <a href="#/">home</a></p>
 				</template>
 			</web-route>
 			<web-route path="/start" import="/pages/home-page.html"></web-route>
