@@ -33,7 +33,7 @@ class RouteUri {
 
   /// Map represenation of this RouteUri.
   Map<String, Object> toMap() {
-    Map<String, dynamic> map = new Map<String, dynamic>();
+    Map<String, Object> map = new Map<String, Object>();
     map['path'] = this.path;
     map['hash'] = this.hash;
     map['search'] = this.search;

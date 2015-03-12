@@ -21,11 +21,11 @@ class WebRoute extends PolymerElement with Observable {
   @published String redirect;
   /// Is it an inline template?
   @published bool template = false;
-  /// Is the path is a regular expression?
+  /// Is the path a regular expression?
   @published bool regex = false;
   /// Is transition animation in progress?
   bool transitionAnimationInProgress = false;
-  /// Is the route is active?
+  /// Is the route active?
   @published bool active = false;
   /// Whether to bind the router to the element.
   @published bool bindRouter;
@@ -37,6 +37,7 @@ class WebRoute extends PolymerElement with Observable {
 
   @override
   void ready() {
+    super.ready();
     _contentContainer = shadowRoot.querySelector("content");
     //print("ready: path ${path}!\n");
   }
@@ -51,5 +52,5 @@ class WebRoute extends PolymerElement with Observable {
 
   @override
   String toString() =>
-      "path: $path, imp: $imp, elem: $elem, template: $template, regex: $regex, redirect: $redirect, transitionAnimationInProgress: $transitionAnimationInProgress, active: $active, bindRouter: $bindRouter";
+      "web-route (path: $path, imp: $imp, elem: $elem, template: $template, regex: $regex, redirect: $redirect, transitionAnimationInProgress: $transitionAnimationInProgress, active: $active, bindRouter: $bindRouter)";
 }
