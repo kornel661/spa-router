@@ -12,15 +12,18 @@ class RouteUri {
   Uri uri;
   bool isHashPath = false;
 
+  /// hash for routing for this uri ('...#/...?...#XXX')
   String get hash {
     if (uri.fragment.length == 0) return '';
     return '#' + uri.fragment;
   }
 
+  /// path for routing for this uri ('...#/XXX?...#...')
   String get path {
     return uri.path;
   }
 
+  /// query string for routing for this uri ('...#/...?XXX#...')
   String get search {
     if (uri.query.length == 0) return '';
     return '?' + uri.query;
@@ -29,7 +32,7 @@ class RouteUri {
   String toString() => uri.toString() + " isHashPath: ${isHashPath}";
 
   /// Map represenation of this RouteUri.
-  Map<String, dynamic> toMap() {
+  Map<String, Object> toMap() {
     Map<String, dynamic> map = new Map<String, dynamic>();
     map['path'] = this.path;
     map['hash'] = this.hash;
@@ -38,22 +41,11 @@ class RouteUri {
     return map;
   }
 
-  Uri replacePathAndQuery(Uri uri, String pathAndQuery) {
-    String path = pathAndQuery;
-    String query = "";
-    int index = pathAndQuery.indexOf("?");
-    if (index != -1) {
-      path = pathAndQuery.substring(0, index); // get rid of query
-      query = pathAndQuery.substring(index + 1); // just the query
-    }
-    uri = uri.replace(path: path, query: query);
-    return uri;
-  }
-
   /// parseUrl(location, mode) - Augment the native URL() constructor to get info about hash paths
-  /// mode = "auto|hash|pushstate"
+  ///  mode = "auto|hash|pushstate"
   ///
-  /// Example parseUrl('http://domain.com/other/path?queryParam3=false#/example/path?queryParam1=true&queryParam2=example%20string#middle', 'auto')
+  /// Example:
+  ///  parseUrl('http://domain.com/other/path?queryParam3=false#/example/path?queryParam1=true&queryParam2=example%20string#middle', 'auto')
   ///
   /// returns {
   ///   path: '/example/path',
@@ -75,18 +67,18 @@ class RouteUri {
         // '#/'
         // hash path
         isHashPath = true;
-        uri = replacePathAndQuery(uri, uri.fragment);
+        uri = _replacePathAndQuery(uri, uri.fragment);
       } else if (uri.fragment.startsWith('!/')) {
         // '#!/'
         // hashbang path
         isHashPath = true;
-        uri = replacePathAndQuery(uri, uri.fragment.substring(1));
+        uri = _replacePathAndQuery(uri, uri.fragment.substring(1));
       } else if (isHashPath) {
         // still use the hash if mode="hash"
         if (uri.fragment.length == 0) {
-          uri = uri.replace(path: '/');
+          uri = uri.replace(path: '/', query: '');
         } else {
-          uri = replacePathAndQuery(uri, uri.fragment);
+          uri = _replacePathAndQuery(uri, uri.fragment);
         }
       }
 
@@ -109,4 +101,22 @@ class RouteUri {
       }
     }
   }
+}
+
+/// Given a pathAndQuery string (e.g., '/a/b/c?test=ok) creates a new Uri with
+/// path and query fields of the uri replaced with the ones form the
+/// pathAndQuery string, eg.,
+///  path: /a/b/c
+///  query: test=ok
+///
+Uri _replacePathAndQuery(Uri uri, String pathAndQuery) {
+  String path = pathAndQuery;
+  String query = "";
+  int index = pathAndQuery.indexOf("?");
+  if (index != -1) {
+    path = pathAndQuery.substring(0, index); // get rid of query
+    query = pathAndQuery.substring(index + 1); // just the query
+  }
+  uri = uri.replace(path: path, query: query);
+  return uri;
 }
