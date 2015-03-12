@@ -69,7 +69,7 @@ class WebRouter extends PolymerElement {
     _ajax = $['ajax'];
   }
 
-  /// Initialize the router
+  /// Initialize the router: core-animated-pages and listen for change events.
   void initialize() {
     if (isInitialized) {
       return;
@@ -78,6 +78,7 @@ class WebRouter extends PolymerElement {
 
     // <app-router core-animated-pages transitions="hero-transition cross-fade">
     if (core_animated_pages) {
+      //print('core-animated-pages');
       // use shadow DOM to wrap the <app-route> elements in a <core-animated-pages> element
       // <app-router>
       //   # shadowRoot
@@ -91,20 +92,16 @@ class WebRouter extends PolymerElement {
       // </app-router>
       //createShadowRoot();
 
-      //Element content = shadowRoot.querySelector("content");
-      List<WebRoute> appRoutes =
+      List<WebRoute> webRoutes =
           querySelectorAll("web-route") as List<WebRoute>;
 
-      //coreAnimatedPages = (new Element.tag('core-animated-pages') as CoreAnimatedPages);
       coreAnimatedPages = new CoreAnimatedPages();
-      //coreAnimatedPages = (document.createElement('core-animated-pages') as CoreAnimatedPages);
-      //coreAnimatedPages.append(content);
-      for (WebRoute ele in appRoutes) {
-        coreAnimatedPages.append(ele);
+      for (WebRoute route in webRoutes) {
+        coreAnimatedPages.append(route);
       }
 
       // don't know why it needs to be static, but absolute doesn't display the page
-      coreAnimatedPages.style.position = 'static';
+      //coreAnimatedPages.style.position = 'static';
 
       // toggle the selected page using selected="path" instead of selected="integer"
       coreAnimatedPages.setAttribute('valueattr', 'path');
@@ -142,7 +139,7 @@ class WebRouter extends PolymerElement {
   /// options = {
   ///   replace: true
   /// }
-  void go(String path, [Map<String, dynamic> options = null]) {
+  void go(String path, [Map<String, Object> options = null]) {
     if (mode != "pushstate") {
       // mode == auto or hash
       path = '#' + path;
@@ -222,7 +219,7 @@ void activateRoute(WebRouter router, WebRoute route, RouteUri url) {
     return;
   }
 
-  Map<String, dynamic> eventDetail = {
+  Map<String, Object> eventDetail = {
     'path': url.path,
     'route': route,
     'oldRoute': router.activeRoute
@@ -267,12 +264,12 @@ void activateRoute(WebRouter router, WebRoute route, RouteUri url) {
 
 /// Import and activate a custom element or template.
 void importAndActivate(WebRouter router, String importUri, WebRoute route,
-    RouteUri url, Map<String, dynamic> eventDetail) {
+    RouteUri url, Map<String, Object> eventDetail) {
   Element contentHtml;
 
   pageLoadedCallback(CustomEvent e, WebRouter router, Element contentHtml,
       String importUri, WebRoute route, RouteUri url,
-      Map<String, dynamic> eventDetail) {
+      Map<String, Object> eventDetail) {
     final String content = e.detail['response'];
 
     if (route.active) {
@@ -312,7 +309,7 @@ void importAndActivate(WebRouter router, String importUri, WebRoute route,
 
 /// Activate the imported custom element or template.
 void activateImport(WebRouter router, Element contentHtml, String importUri,
-    WebRoute route, RouteUri url, Map<String, dynamic> eventDetail) {
+    WebRoute route, RouteUri url, Map<String, Object> eventDetail) {
   // make sure the user didn't navigate to a different route while it loaded
   if (route.active) {
     if (route.template) {
@@ -335,7 +332,7 @@ void activateImport(WebRouter router, Element contentHtml, String importUri,
 
 /// Creates the custom element, binds the data to it and then activates it.
 void activateCustomElement(WebRouter router, String elementName, WebRoute route,
-    RouteUri url, Map<String, dynamic> eventDetail) {
+    RouteUri url, Map<String, Object> eventDetail) {
   Element customElement = document.createElement(elementName);
   Map<String, String> model = createModel(router, route, url, eventDetail);
   customElement.attributes.addAll(
@@ -374,9 +371,9 @@ void activeTemplate(WebRouter router, TemplateElement template, WebRoute route,
 }
 
 /// Creates the route's model.
-Map<String, dynamic> createModel(WebRouter router, WebRoute route, RouteUri url,
-    Map<String, dynamic> eventDetail) {
-  Map<String, dynamic> model = routeArguments(route.getAttribute('path'),
+Map<String, Object> createModel(WebRouter router, WebRoute route, RouteUri url,
+    Map<String, Object> eventDetail) {
+  Map<String, Object> model = routeArguments(route.getAttribute('path'),
       url.path, url.search, route.regex, router.typecast == 'auto');
   if (route.bindRouter != null || router.bindRouter != null) {
     model['router'] = router;
@@ -390,7 +387,7 @@ Map<String, dynamic> createModel(WebRouter router, WebRoute route, RouteUri url,
 
 /// Replaces the active route's content with the new element.
 void activeElement(WebRouter router, Node element, RouteUri url,
-    Map<String, dynamic> eventDetail) {
+    Map<String, Object> eventDetail) {
   // core-animated-pages temporarily needs the old and new route in the DOM at the same time to animate the transition,
   // otherwise we can remove the old route's content right away.
   // UNLESS

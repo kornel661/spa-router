@@ -10,6 +10,7 @@ library routeUri;
 ///   isHashPath: true
 class RouteUri {
   Uri uri;
+  /// Is it a 'hash' path?
   bool isHashPath = false;
 
   /// hash for routing for this uri ('...#/...?...#XXX')
