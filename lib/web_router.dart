@@ -11,6 +11,8 @@ import 'package:web_router/web_route.dart';
 import 'package:core_elements/core_ajax_dart.dart';
 import 'package:template_binding/template_binding.dart';
 
+import 'src/routeUri.dart';
+
 Map importedURIs = {};
 RouteUri previousUrl = new RouteUri.parse(window.location.href, "auto");
 
@@ -28,7 +30,7 @@ class WebRouter extends PolymerElement {
 	/// mode="auto|hash|pushstate"
 	@published String mode = "auto";
 	/// trailingSlash="strict|ignore"
-	/// If ignore then '/home' matches '/home/' as well. 
+	/// If ignore then '/home' matches '/home/' as well.
 	@published String trailingSlash = "strict";
 	@published bool shadow = false;
 	/// typecast="auto|string"
@@ -63,6 +65,7 @@ class WebRouter extends PolymerElement {
 
 	@override
 	void ready() {
+		super.ready();
 		_ajax = $['ajax'];
 	}
 
@@ -72,7 +75,7 @@ class WebRouter extends PolymerElement {
 			return;
 		}
 		isInitialized = true;
-		
+
 		// <app-router core-animated-pages transitions="hero-transition cross-fade">
 		if (core_animated_pages) {
 			// use shadow DOM to wrap the <app-route> elements in a <core-animated-pages> element
@@ -87,10 +90,10 @@ class WebRouter extends PolymerElement {
 			//   </core-animated-pages>
 			// </app-router>
 			//createShadowRoot();
-			
+
 			//Element content = shadowRoot.querySelector("content");
-			List<WebRoute> appRoutes = querySelectorAll("app-route");
-			
+			List<WebRoute> appRoutes = querySelectorAll("web-route");
+
 			//coreAnimatedPages = (new Element.tag('core-animated-pages') as CoreAnimatedPages);
 			coreAnimatedPages = new CoreAnimatedPages();
 			//coreAnimatedPages = (document.createElement('core-animated-pages') as CoreAnimatedPages);
@@ -98,29 +101,29 @@ class WebRouter extends PolymerElement {
 			for (WebRoute ele in appRoutes){
 				coreAnimatedPages.append(ele);
 			}
-			
+
 			// don't know why it needs to be static, but absolute doesn't display the page
 			coreAnimatedPages.style.position = 'static';
-			
+
 			// toggle the selected page using selected="path" instead of selected="integer"
 			coreAnimatedPages.setAttribute('valueattr', 'path');
-			
+
 			// pass the transitions attribute from <app-router core-animated-pages transitions="hero-transition cross-fade">
 			// to <core-animated-pages transitions="hero-transition cross-fade">
 			coreAnimatedPages.setAttribute('transitions', transitions);
-			
+
 			// set the shadow DOM's content
 			shadowRoot.append(coreAnimatedPages);
-			
+
 			// when a transition finishes, remove the previous route's content. there is a temporary overlap where both
 			// the new and old route's content is in the DOM to animate the transition.
 			coreAnimatedPages.addEventListener('core-animated-pages-transition-end', (Event e) => transitionAnimationEnd(previousRoute));
 		}
-		
+
 		// listen for URL change events
 		stateChangeHandler = (Event e) => stateChange(this);
 		window.addEventListener('popstate', stateChangeHandler, false);
-		
+
 		// load the web component for the current route
 		stateChange(this);
 	}
@@ -148,7 +151,7 @@ class WebRouter extends PolymerElement {
 		} else {
 			window.history.pushState(null, "", path);
 		}
-		
+
 		// dispatch a popstate event
 		PopStateEvent popstateEvent = new Event.eventType('PopStateEvent', 'popstate', canBubble: false, cancelable: false);
 		window.dispatchEvent(popstateEvent);
@@ -171,117 +174,18 @@ class WebRouter extends PolymerElement {
 /*---------------------------------------------------------------------------*/
 
 
-class RouteUri {
-	Uri uri;
-	bool isHashPath = false;
-	
-	String get hash {
-		if (uri.fragment.length == 0) return '';
-		return '#'+uri.fragment;
-	}
-	
-	String get path {
-		return uri.path;
-	}
-	
-	String get search {
-		if (uri.query.length == 0) return '';
-		return '?' + uri.query;
-	}
-	
-	String toString() => uri.toString() + " isHashPath: ${isHashPath}";
-	
-	Map<String, dynamic> toMap() {
-		Map<String, dynamic> map = new Map<String, dynamic>();
-		map['path'] = this.path;
-		map['hash'] = this.hash;
-		map['search'] = this.search;
-		map['isHashPath'] = this.isHashPath;
-		return map;
-	}
-	
-	Uri replacePathAndQuery(Uri uri, String pathAndQuery) {
-		int index = pathAndQuery.indexOf("?");
-		String path = pathAndQuery;
-		String query = "";
-		if (index != -1) {
-			path = pathAndQuery.substring(0, index);
-			query = pathAndQuery.substring(index + 1);
-		}
-		uri = uri.replace(path: path, query: query);
-		return uri;
-	}
-	
-	/// parseUrl(location, mode) - Augment the native URL() constructor to get info about hash paths
-	/// mode = "auto|hash|pushstate"
-	///
-	/// Example parseUrl('http://domain.com/other/path?queryParam3=false#/example/path?queryParam1=true&queryParam2=example%20string#middle', 'auto')
-	///
-	/// returns {
-	///   path: '/example/path',
-	///   hash: '#middle'
-	///   search: '?queryParam1=true&queryParam2=example%20string',
-	///   isHashPath: true
-	/// }
-	///
-	/// Note: The location must be a fully qualified URL with a protocol like 'http(s)://'
-	RouteUri.parse(String uriIn, String mode){
-		uri = Uri.parse(uriIn);
-		isHashPath = (mode == "hash");
-		
-		if (mode != "pushstate") {
-			// auto or hash
-			
-			// check for a hash path
-			if (uri.fragment.startsWith('/')) {// '#/'
-				// hash path
-				isHashPath = true;
-				uri = replacePathAndQuery(uri, uri.fragment);
-			} else if (uri.fragment.startsWith('!/')) {// '#!/'
-				// hashbang path
-				isHashPath = true;
-				uri = replacePathAndQuery(uri, uri.fragment.substring(1));
-			} else if (isHashPath) {
-				// still use the hash if mode="hash"
-				if (uri.fragment.length == 0) {
-					uri = uri.replace(path: '/');
-				} else {
-					uri = replacePathAndQuery(uri, uri.fragment);
-				}
-			}
-		
-			if (isHashPath) {
-				uri = uri.replace(fragment: '');
-				
-				// hash paths might have an additional hash in the hash path for scrolling to a specific part of the page #/hash/path#elementId
-				int secondHashIndex = uri.path.indexOf('#');
-				if (secondHashIndex != -1) {
-					uri = uri.replace(fragment: uri.path.substring(secondHashIndex));
-					uri = uri.replace(path: uri.path.substring(0, secondHashIndex));
-				}
-				
-				// hash paths get the search from the hash if it exists
-				int searchIndex = uri.path.indexOf('?');
-				if (searchIndex != -1) {
-					uri = uri.replace(query: uri.path.substring(searchIndex));
-					uri = uri.replace(path: uri.path.substring(0, searchIndex));
-				}
-			}
-		}
-	}
-}
 
 /// Find the first <web-route> that matches the current URL and change the active route
 void stateChange(WebRouter router) {
 	RouteUri url = new RouteUri.parse(window.location.href, router.mode);
-	
+
 	// don't load a new route if only the hash fragment changed
 	if (url.hash != previousUrl.hash && url.path == previousUrl.path && url.search == previousUrl.search && url.isHashPath == previousUrl.isHashPath) {
 		scrollToHash(url.hash);
 		return;
 	}
 	previousUrl = url;
-	
+
 	// fire a state-change event on the app-router and return early if the user called event.preventDefault()
 	Map<String, String> eventDetail = {
 		'path': url.path
@@ -289,7 +193,7 @@ void stateChange(WebRouter router) {
 	if (!router.fireEvent('state-change', eventDetail, router)) {
 		return;
 	}
-	
+
 	// find the first matching route
 	List<Element> elems;
 	if (router.core_animated_pages) {
@@ -307,7 +211,7 @@ void stateChange(WebRouter router) {
 			}
 		}
 	}
-	
+
 	router.fireEvent('not-found', eventDetail, router);
 }
 
@@ -317,7 +221,7 @@ void activateRoute(WebRouter router, WebRoute route, RouteUri url) {
 		router.go(route.redirect, {'replace': true});
 		return;
 	}
-	
+
 	Map<String, dynamic> eventDetail = {
 		'path': url.path,
 		'route': route,
@@ -329,7 +233,7 @@ void activateRoute(WebRouter router, WebRoute route, RouteUri url) {
 	if (!router.fireEvent('activate-route-start', eventDetail, route)) {
 		return;
 	}
-	
+
 	// update the references to the activeRoute and previousRoute. if you switch between routes quickly you may go to a
 	// new route before the previous route's transition animation has completed. if that's the case we need to remove
 	// the previous route's content before we replace the reference to the previous route.
@@ -342,7 +246,7 @@ void activateRoute(WebRouter router, WebRoute route, RouteUri url) {
 	router.previousRoute = router.activeRoute;
 	router.activeRoute = route;
 	router.activeRoute.active = true;
-	
+
 	// import custom element or template
 	if (route.imp != null) {
 		importAndActivate(router, route.imp, route, url, eventDetail);
@@ -361,25 +265,25 @@ void activateRoute(WebRouter router, WebRoute route, RouteUri url) {
 void importAndActivate(WebRouter router, String importUri, WebRoute route,
                        RouteUri url, Map<String, dynamic> eventDetail){
 	Element contentHtml;
-	
+
 	pageLoadedCallback(CustomEvent e, WebRouter router, Element contentHtml,
 		                 String importUri, WebRoute route, RouteUri url,
 		                 Map<String, dynamic> eventDetail) {
 		final String content = e.detail['response'];
-		
+
 		if (route.active) {
 			route.setContent(content, _nodeValidator);
 			contentHtml = route.getContent();
 			print("imported");
 		}
-		
+
 		activateImport(router, contentHtml, importUri, route, url, eventDetail);
 	}
-	
+
 	onError(Event e) {
 		print("Error: could not find/load page.");
 	}
-	
+
 	if (!importedURIs.containsKey(importUri)) {//TODO
 		// hasn't been imported yet
 		importedURIs[importUri] = true;
@@ -439,7 +343,7 @@ void activateCustomElement(WebRouter router, String elementName, WebRoute route,
 void activeTemplate(WebRouter router, TemplateElement template, WebRoute route, RouteUri url, Map eventDetail) {
 	DocumentFragment templateInstance;
 	//TODO: inline template and its binding seems not to be working always yet, for example when app-router itself is contained in a (auto-binding) template.
-	
+
 	Map<String, String> model = createModel(router, route, url, eventDetail);
 //	if (model != {}) {//Has to be auto-binding template then
 //		//// template.createInstance(model) is a Polymer method that binds a model to a template and also fixes
@@ -483,27 +387,27 @@ void activeElement(WebRouter router, Node element, RouteUri url,
 	if (!router.core_animated_pages || eventDetail['route'] == eventDetail['oldRoute']) {
 		removeRouteContent(router.previousRoute);
 	}
-	
+
 	// add the new content
 	router.activeRoute.append(element);
-	
+
 	// animate the transition if core-animated-pages are being used
 	if (router.core_animated_pages) {
 		router.coreAnimatedPages.selected = router.activeRoute.path;
-		
+
 		// we already wired up transitionAnimationEnd() in init()
-		
+
 		// use to check if the previous route has finished animating before being removed
 		if (router.previousRoute != null) {
 			router.previousRoute.transitionAnimationInProgress = true;
 		}
 	}
-	
+
 	// scroll to the URL hash if it's present
 	if (url.hash != null && !router.core_animated_pages) {
 		scrollToHash(url.hash);
 	}
-	
+
 	router.fireEvent('activate-route-end', eventDetail, router);
 	router.fireEvent('activate-route-end', eventDetail, eventDetail['route']);
 }
@@ -533,13 +437,13 @@ void removeRouteContent(WebRoute route) {
 /// Scroll to the element with id="hash" or name="hash".
 void scrollToHash(String hash) {
 	if (hash == null || hash == '') return;
-	
+
 	// wait for the browser's scrolling to finish before we scroll to the hash
 	// ex: http://example.com/#/page1#middle
 	// the browser will scroll to an element with id or name `/page1#middle` when the page finishes loading. if it doesn't exist
 	// it will scroll to the top of the page. let the browser finish the current event loop and scroll to the top of the page
 	// before we scroll to the element with id or name `middle`.
-	
+
 	void onTimerScrollToHash () {
 		Element hashElement = document.querySelector('html /deep/ ' + hash);
 		if (hashElement == null) {
@@ -549,7 +453,7 @@ void scrollToHash(String hash) {
 			hashElement.scrollIntoView(ScrollAlignment.TOP);
 		}
 	}
-	
+
 	new Timer(new Duration(milliseconds: 0), onTimerScrollToHash);//TODO
 }
 
@@ -559,7 +463,7 @@ void scrollToHash(String hash) {
 /// Example urlPath = '/example/path'
 bool testRoute(String routePath, String urlPath, String trailingSlashOption, bool isRegExp) {
 	// this algorithm tries to fail or succeed as quickly as possible for the most common cases
-	
+
 	// handle trailing slashes (options: strict (default), ignore)
 	if (trailingSlashOption == 'ignore') {
 		// remove trailing / from the route path and URL path
@@ -570,34 +474,34 @@ bool testRoute(String routePath, String urlPath, String trailingSlashOption, boo
 			routePath = routePath.substring(0, routePath.length-1);
 		}
 	}
-	
+
 	// test regular expressions
 	if (isRegExp) {
 		return testRegExString(routePath, urlPath);
 	}
-	
+
 	// if the urlPath is an exact match or '*' then the route is a match
 	if (routePath == urlPath || routePath == '*') {
 		return true;
 	}
-	
+
 	// look for wildcards
 	if (routePath.indexOf('*') == -1 && routePath.indexOf(':') == -1) {
 	  // no wildcards and we already made sure it wasn't an exact match so the test fails
 	  return false;
 	}
-	
+
 	// example urlPathSegments = ['', example', 'path']
 	List<String> urlPathSegments = urlPath.split('/');
-	
+
 	// example routePathSegments = ['', 'example', '*']
 	List<String> routePathSegments = routePath.split('/');
-	
+
 	// there must be the same number of path segments or it isn't a match
 	if (urlPathSegments.length != routePathSegments.length) {
 		return false;
 	}
-	
+
 	// check equality of each path segment
 	for (int i = 0; i < routePathSegments.length; i++) {
 	  // the path segments must be equal, be a wildcard segment '*', or be a path parameter like ':id'
@@ -607,7 +511,7 @@ bool testRoute(String routePath, String urlPath, String trailingSlashOption, boo
 	    return false;
 	  }
 	}
-	
+
 	// nothing failed. the route matches the URL.
 	return true;
 }
@@ -615,15 +519,15 @@ bool testRoute(String routePath, String urlPath, String trailingSlashOption, boo
 /// routeArguments(routePath, urlPath, search, isRegExp) - Gets the path variables and query parameter values from the URL.
 Map routeArguments(String routePath, String urlPath, String search, bool isRegExp, bool autoTypecast) {
 	Map<String, String> args = {};
-	
+
 	// regular expressions can't have path variables
 	if (!isRegExp) {
 		// example urlPathSegments = ['', example', 'path']
 		List<String> urlPathSegments = urlPath.split('/');
-		
+
 		// example routePathSegments = ['', 'example', '*']
 		List<String> routePathSegments = routePath.split('/');
-		
+
 		// get path variables
 		// urlPath '/customer/123'
 		// routePath '/customer/:id'
@@ -635,7 +539,7 @@ Map routeArguments(String routePath, String urlPath, String search, bool isRegEx
 			}
 		}
 	}
-	
+
 	List<String> queryParameters = [];
 	if (search.length > 0) {
 	  queryParameters = search.substring(1).split('&');
@@ -649,14 +553,14 @@ Map routeArguments(String routePath, String urlPath, String search, bool isRegEx
 		List<String> queryParameterParts = queryParameter.split('=');
 		args[queryParameterParts[0]] = queryParameterParts.sublist(1).join('=');//TODO
 	}
-	
+
 	if (autoTypecast) {
 		// parse the arguments into unescaped strings, numbers, or booleans
 		for (String arg in args.keys) {
 			args[arg] = typecast(args[arg]);
 		}
 	}
-	
+
 	return args;
 }
 
@@ -669,7 +573,7 @@ String typecast(String value) {
 	if (value == 'false') {
 		return 'false';
 	}
-	
+
 	// number
 	if (value != '' && !value.startsWith('0')) {
 		int number = int.parse(value, onError: (string) => 0);
@@ -677,7 +581,7 @@ String typecast(String value) {
 			return number.toString();
 		}
 	}
-	
+
 	// string
 	return Uri.decodeComponent(value);
 }
@@ -709,10 +613,10 @@ bool testRegExString(String pattern, String value) {
 
 
 class _TrusingNodeValidator implements NodeValidator {
-	
+
 	@override
 	bool allowsAttribute(Element element, String attributeName, String value) => true;
-	
+
 	@override
 	bool allowsElement(Element element) => true;
 }
