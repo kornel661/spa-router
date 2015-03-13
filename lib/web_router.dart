@@ -139,12 +139,12 @@ class WebRouter extends PolymerElement {
   /// options = {
   ///   replace: true
   /// }
-  void go(String path, [Map<String, Object> options = null]) {
+  void go(String path, {bool replace: false}) {
     if (mode != "pushstate") {
       // mode == auto or hash
       path = '#' + path;
     }
-    if (options != null && options['replace'] == true) {
+    if (replace) {
       window.history.replaceState(null, "", path);
     } else {
       window.history.pushState(null, "", path);
@@ -215,7 +215,7 @@ void stateChange(WebRouter router) {
 /// Activate the route
 void activateRoute(WebRouter router, WebRoute route, RouteUri url) {
   if (route.redirect != null) {
-    router.go(route.redirect, {'replace': true});
+    router.go(route.redirect, replace: true);
     return;
   }
 
