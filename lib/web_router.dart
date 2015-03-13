@@ -7,11 +7,11 @@ import 'package:polymer/polymer.dart';
 import 'dart:html';
 import 'dart:async';
 import 'package:core_elements/core_animated_pages.dart';
-import 'package:web_router/web_route.dart';
 import 'package:core_elements/core_ajax_dart.dart';
 import 'package:template_binding/template_binding.dart';
 
-import 'src/routeUri.dart';
+import 'package:web_router/web_route.dart';
+import 'package:web_router/src/routeUri.dart';
 
 Map<String, bool> _importedURIs = {};
 
@@ -24,7 +24,7 @@ class WebRouter extends PolymerElement {
 
   /// init="auto|manual"
   /// If manual one has to initialize the router manually:
-  /// 	document.querySelector('app-router').init();
+  /// 	document.querySelector('app-router').initialize();
   @published String init = "auto";
   /// mode="hash|pushstate"
   @published String mode = "hash";
@@ -84,7 +84,6 @@ class WebRouter extends PolymerElement {
 
     // <app-router core-animated-pages transitions="hero-transition cross-fade">
     if (core_animated_pages) {
-      //print('core-animated-pages');
       // use shadow DOM to wrap the <app-route> elements in a <core-animated-pages> element
       // <app-router>
       //   # shadowRoot
