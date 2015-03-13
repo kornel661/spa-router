@@ -2,7 +2,7 @@ library routeUri;
 
 /// Class representing URIs hadled by routes.
 ///
-/// Example parseUrl('http://domain.com/other/path?queryParam3=false#/example/path?queryParam1=true&queryParam2=example%20string#middle', 'auto')
+/// Example parse('http://domain.com/other/path?queryParam3=false#/example/path?queryParam1=true&queryParam2=example%20string#middle', 'auto')
 /// gives:
 ///   path: '/example/path',
 ///   hash: '#middle'
@@ -42,11 +42,11 @@ class RouteUri {
     return map;
   }
 
-  /// parseUrl(location, mode) - Augment the native URL() constructor to get info about hash paths
+  /// parse(location, mode) - Augment the native URL() constructor to get info about hash paths
   ///  mode = "auto|hash|pushstate"
   ///
   /// Example:
-  ///  parseUrl('http://domain.com/other/path?queryParam3=false#/example/path?queryParam1=true&queryParam2=example%20string#middle', 'auto')
+  ///  parse('http://domain.com/other/path?queryParam3=false#/example/path?queryParam1=true&queryParam2=example%20string#middle', 'auto')
   ///
   /// returns {
   ///   path: '/example/path',
@@ -92,7 +92,7 @@ class RouteUri {
           uri = uri.replace(fragment: uri.path.substring(secondHashIndex));
           uri = uri.replace(path: uri.path.substring(0, secondHashIndex));
         }
-
+        // FIXME(km): hash is not working
         // hash paths get the search from the hash if it exists
         int searchIndex = uri.path.indexOf('?');
         if (searchIndex != -1) {
