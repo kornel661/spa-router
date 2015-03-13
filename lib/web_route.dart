@@ -30,7 +30,7 @@ class WebRoute extends PolymerElement with Observable {
   /// Whether to bind the router to the element.
   @published bool bindRouter;
 
-  Element _contentContainer;
+  ContentElement _contentContainer;
 
   @override
   WebRoute.created() : super.created();
@@ -38,15 +38,17 @@ class WebRoute extends PolymerElement with Observable {
   @override
   void ready() {
     super.ready();
-    _contentContainer = shadowRoot.querySelector("content");
+    _contentContainer = querySelector("content");
     //print("ready: path ${path}!\n");
   }
 
-  void setContent(content, validator) {
+  /// Sets the content of the route.
+  void setContent(String content, NodeValidator validator) {
     _contentContainer.setInnerHtml(content, validator: validator);
   }
 
-  Element getContent() {
+  /// Returns the <content> element of the route.
+  ContentElement getContentElement() {
     return _contentContainer;
   }
 

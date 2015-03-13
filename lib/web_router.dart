@@ -275,7 +275,7 @@ void importAndActivate(WebRouter router, String importUri, WebRoute route,
 
     if (route.active) {
       route.setContent(content, _nodeValidator);
-      contentHtml = route.getContent();
+      contentHtml = route.getContentElement();
       print("imported");
     }
 
@@ -302,7 +302,7 @@ void importAndActivate(WebRouter router, String importUri, WebRoute route,
     if (router._ajax.loading) {
       // just wait longer
     } else {
-      contentHtml = route.getContent();
+      contentHtml = route.getContentElement();
       activateImport(router, contentHtml, importUri, route, url, eventDetail);
     }
   }
