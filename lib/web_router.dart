@@ -176,7 +176,7 @@ class WebRouter extends PolymerElement {
 
     // fire a state-change event on the app-router and return early if the user called event.preventDefault()
     Map<String, String> eventDetail = {'path': url.path};
-    if (!fireEvent('state-change', eventDetail, this)) {
+    if (!_fireEvent('state-change', eventDetail, this)) {
       return;
     }
 
@@ -196,22 +196,22 @@ class WebRouter extends PolymerElement {
       }
     }
 
-    fireEvent('route-not-found', eventDetail, this);
-  }
-
-  /// fireEvent(type, detail, node) - Fire a new CustomEvent(type, detail) on the node
-  ///
-  /// listen with document.querySelector('app-router').addEventListener(type, function(event) {
-  ///   event.detail, event.preventDefault()
-  /// })
-  bool fireEvent(String type, Object detail, Node node) {
-    CustomEvent event = new CustomEvent(type,
-        detail: detail, canBubble: false, cancelable: true);
-    return node.dispatchEvent(event);
+    _fireEvent('route-not-found', eventDetail, this);
   }
 }
 
 /*---------------------------------------------------------------------------*/
+
+/// fireEvent(type, detail, node) - Fire a new CustomEvent(type, detail) on the node
+///
+/// listen with document.querySelector('app-router').addEventListener(type, function(event) {
+///   event.detail, event.preventDefault()
+/// })
+bool _fireEvent(String type, Object detail, Node node) {
+  CustomEvent event =
+      new CustomEvent(type, detail: detail, canBubble: false, cancelable: true);
+  return node.dispatchEvent(event);
+}
 
 /// Activate the route
 void activateRoute(WebRouter router, WebRoute route, RouteUri url) {
@@ -225,11 +225,11 @@ void activateRoute(WebRouter router, WebRoute route, RouteUri url) {
     'route': route,
     'oldRoute': router._activeRoute
   };
-  if (!router.fireEvent('activate-route-start', eventDetail, router)) {
+  if (!_fireEvent('activate-route-start', eventDetail, router)) {
     //TODO: are dashes allowed in Polymer event names?
     return;
   }
-  if (!router.fireEvent('activate-route-start', eventDetail, route)) {
+  if (!_fireEvent('activate-route-start', eventDetail, route)) {
     return;
   }
 
@@ -381,8 +381,8 @@ Map<String, Object> createModel(WebRouter router, WebRoute route, RouteUri url,
     print("router.templateInstance.model: ${router.templateInstance.model}");
   }
   eventDetail['model'] = model;
-  router.fireEvent('before-data-binding', eventDetail, router);
-  router.fireEvent('before-data-binding', eventDetail, eventDetail['route']);
+  _fireEvent('before-data-binding', eventDetail, router);
+  _fireEvent('before-data-binding', eventDetail, eventDetail['route']);
   return eventDetail['model'];
 }
 
@@ -419,8 +419,8 @@ void activeElement(WebRouter router, Node element, RouteUri url,
     scrollToHash(url.hash);
   }
 
-  router.fireEvent('activate-route-end', eventDetail, router);
-  router.fireEvent('activate-route-end', eventDetail, eventDetail['route']);
+  _fireEvent('activate-route-end', eventDetail, router);
+  _fireEvent('activate-route-end', eventDetail, eventDetail['route']);
 }
 
 /// Call when the previousRoute has finished the transition animation out.
