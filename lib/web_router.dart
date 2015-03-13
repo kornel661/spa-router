@@ -13,12 +13,11 @@ import 'package:template_binding/template_binding.dart';
 
 import 'src/routeUri.dart';
 
-Map importedURIs = {};
-RouteUri previousUrl = new RouteUri.parse(window.location.href, "auto");
+Map<String, bool> _importedURIs = {};
 
 /// web-router is a router element.
 /// Example usage:
-/// 	<app-router [init="auto|manual"] [mode="auto|hash|pushstate"] [trailingSlash="strict|ignore"] [shadow]></app-router>
+/// 	<app-router [init="auto|manual"] [mode="hash|pushstate"] [trailingSlash="strict|ignore"] [shadow]></app-router>
 /// 	<app-router core_animated_pages transitions="hero-transition cross-fade">
 @CustomTag('web-router')
 class WebRouter extends PolymerElement {
@@ -27,8 +26,8 @@ class WebRouter extends PolymerElement {
   /// If manual one has to initialize the router manually:
   /// 	document.querySelector('app-router').init();
   @published String init = "auto";
-  /// mode="auto|hash|pushstate"
-  @published String mode = "auto";
+  /// mode="hash|pushstate"
+  @published String mode = "hash";
   /// trailingSlash="strict|ignore"
   /// If ignore then '/home' matches '/home/' as well.
   @published String trailingSlash = "strict";
@@ -44,13 +43,19 @@ class WebRouter extends PolymerElement {
   @published bool bindRouter;
 
   /// Is the router initilized already?
-  bool isInitialized = false;
-  EventListener stateChangeHandler;
-  WebRoute previousRoute;
-  WebRoute activeRoute;
-  CoreAnimatedPages coreAnimatedPages;
-
+  bool _isInitialized = false;
+  /// Previous active route.
+  WebRoute _previousRoute;
+  /// Previous active URL.
+  RouteUri _previousUrl;
+  /// Currently active route.
+  WebRoute _activeRoute;
+  /// CoreAnimatedPages element.
+  CoreAnimatedPages _coreAnimatedPages;
+  /// CoreAjax element for on-demand retrieving of route's elements.
   CoreAjax _ajax;
+  /// Subscription of popstate events (for address change monitoring).
+  StreamSubscription<PopStateEvent> _popStateSubscription;
 
   @override
   WebRouter.created() : super.created();
@@ -71,10 +76,11 @@ class WebRouter extends PolymerElement {
 
   /// Initialize the router: core-animated-pages and listen for change events.
   void initialize() {
-    if (isInitialized) {
+    if (_isInitialized) {
       return;
     }
-    isInitialized = true;
+    _isInitialized = true;
+    _previousUrl = new RouteUri.parse(window.location.href, mode);
 
     // <app-router core-animated-pages transitions="hero-transition cross-fade">
     if (core_animated_pages) {
@@ -95,53 +101,52 @@ class WebRouter extends PolymerElement {
       List<WebRoute> webRoutes =
           querySelectorAll("web-route") as List<WebRoute>;
 
-      coreAnimatedPages = new CoreAnimatedPages();
+      _coreAnimatedPages = new CoreAnimatedPages();
       for (WebRoute route in webRoutes) {
-        coreAnimatedPages.append(route);
+        _coreAnimatedPages.append(route);
       }
 
       // don't know why it needs to be static, but absolute doesn't display the page
       //coreAnimatedPages.style.position = 'static';
 
       // toggle the selected page using selected="path" instead of selected="integer"
-      coreAnimatedPages.setAttribute('valueattr', 'path');
+      _coreAnimatedPages.setAttribute('valueattr', 'path');
 
       // pass the transitions attribute from <app-router core-animated-pages transitions="hero-transition cross-fade">
       // to <core-animated-pages transitions="hero-transition cross-fade">
-      coreAnimatedPages.setAttribute('transitions', transitions);
+      _coreAnimatedPages.setAttribute('transitions', transitions);
 
       // set the shadow DOM's content
-      shadowRoot.append(coreAnimatedPages);
+      shadowRoot.append(_coreAnimatedPages);
 
       // when a transition finishes, remove the previous route's content. there is a temporary overlap where both
       // the new and old route's content is in the DOM to animate the transition.
-      coreAnimatedPages.addEventListener('core-animated-pages-transition-end',
-          (Event e) => transitionAnimationEnd(previousRoute));
+      _coreAnimatedPages.addEventListener('core-animated-pages-transition-end',
+          (Event e) => transitionAnimationEnd(_previousRoute));
     }
 
     // listen for URL change events
-    stateChangeHandler = (Event e) => stateChange(this);
-    window.addEventListener('popstate', stateChangeHandler, false);
+    _popStateSubscription =
+        window.onPopState.listen((PopStateEvent e) => _update());
 
     // load the web component for the current route
-    stateChange(this);
+    _update();
   }
 
   /// clean up global event listeners
   @override
   void detached() {
     super.detached();
-    window.removeEventListener('popstate', stateChangeHandler, false);
+    if (_popStateSubscription != null) {
+      _popStateSubscription.cancel();
+    }
   }
 
-  /// go(path, options) - Navigate to the path
-  ///
-  /// options = {
-  ///   replace: true
-  /// }
+  /// go(path, {replace}) - Navigate to the path. E.g.,
+  ///   go('/home')
   void go(String path, {bool replace: false}) {
     if (mode != "pushstate") {
-      // mode == auto or hash
+      // mode == hash
       path = '#' + path;
     }
     if (replace) {
@@ -151,9 +156,48 @@ class WebRouter extends PolymerElement {
     }
 
     // dispatch a popstate event
-    PopStateEvent popstateEvent = new Event.eventType(
+    PopStateEvent popStateEvent = new Event.eventType(
         'PopStateEvent', 'popstate', canBubble: false, cancelable: false);
-    window.dispatchEvent(popstateEvent);
+    window.dispatchEvent(popStateEvent);
+  }
+
+  /// Find the first <web-route> that matches the current URL and change the active route.
+  void _update() {
+    RouteUri url = new RouteUri.parse(window.location.href, mode);
+
+    // don't load a new route if only the hash fragment changed
+    if (url.hash != _previousUrl.hash &&
+        url.path == _previousUrl.path &&
+        url.search == _previousUrl.search &&
+        url.isHashPath == _previousUrl.isHashPath) {
+      scrollToHash(url.hash);
+      return;
+    }
+    _previousUrl = url;
+
+    // fire a state-change event on the app-router and return early if the user called event.preventDefault()
+    Map<String, String> eventDetail = {'path': url.path};
+    if (!fireEvent('state-change', eventDetail, this)) {
+      return;
+    }
+
+    // find the first matching route
+    List<Element> elems;
+    if (core_animated_pages) {
+      elems = _coreAnimatedPages.children;
+    } else {
+      elems = children;
+    }
+    for (Element route in elems) {
+      if (route is WebRoute) {
+        if (testRoute(route.path, url.path, trailingSlash, route.regex)) {
+          activateRoute(this, route, url);
+          return;
+        }
+      }
+    }
+
+    fireEvent('route-not-found', eventDetail, this);
   }
 
   /// fireEvent(type, detail, node) - Fire a new CustomEvent(type, detail) on the node
@@ -161,56 +205,14 @@ class WebRouter extends PolymerElement {
   /// listen with document.querySelector('app-router').addEventListener(type, function(event) {
   ///   event.detail, event.preventDefault()
   /// })
-  bool fireEvent(String type, var detail, Node node) {
+  bool fireEvent(String type, Object detail, Node node) {
     CustomEvent event = new CustomEvent(type,
         detail: detail, canBubble: false, cancelable: true);
-    //CustomEvent event = fire(type, detail: detail, canBubble: false, cancelable: true, onNode: node);
     return node.dispatchEvent(event);
   }
 }
 
 /*---------------------------------------------------------------------------*/
-
-/// Find the first <web-route> that matches the current URL and change the active route
-void stateChange(WebRouter router) {
-  RouteUri url = new RouteUri.parse(window.location.href, router.mode);
-
-  // don't load a new route if only the hash fragment changed
-  if (url.hash != previousUrl.hash &&
-      url.path == previousUrl.path &&
-      url.search == previousUrl.search &&
-      url.isHashPath == previousUrl.isHashPath) {
-    scrollToHash(url.hash);
-    return;
-  }
-  previousUrl = url;
-
-  // fire a state-change event on the app-router and return early if the user called event.preventDefault()
-  Map<String, String> eventDetail = {'path': url.path};
-  if (!router.fireEvent('state-change', eventDetail, router)) {
-    return;
-  }
-
-  // find the first matching route
-  List<Element> elems;
-  if (router.core_animated_pages) {
-    elems = router.coreAnimatedPages.children;
-  } else {
-    elems = router.children;
-  }
-  for (Element elem in elems) {
-    //if (elem.tagName == 'WEB-ROUTE') {
-    if (elem is WebRoute) {
-      WebRoute route = elem;
-      if (testRoute(route.path, url.path, router.trailingSlash, route.regex)) {
-        activateRoute(router, route, url);
-        return;
-      }
-    }
-  }
-
-  router.fireEvent('not-found', eventDetail, router);
-}
 
 /// Activate the route
 void activateRoute(WebRouter router, WebRoute route, RouteUri url) {
@@ -222,7 +224,7 @@ void activateRoute(WebRouter router, WebRoute route, RouteUri url) {
   Map<String, Object> eventDetail = {
     'path': url.path,
     'route': route,
-    'oldRoute': router.activeRoute
+    'oldRoute': router._activeRoute
   };
   if (!router.fireEvent('activate-route-start', eventDetail, router)) {
     //TODO: are dashes allowed in Polymer event names?
@@ -235,16 +237,16 @@ void activateRoute(WebRouter router, WebRoute route, RouteUri url) {
   // update the references to the activeRoute and previousRoute. if you switch between routes quickly you may go to a
   // new route before the previous route's transition animation has completed. if that's the case we need to remove
   // the previous route's content before we replace the reference to the previous route.
-  if (router.previousRoute != null &&
-      router.previousRoute.transitionAnimationInProgress) {
-    transitionAnimationEnd(router.previousRoute);
+  if (router._previousRoute != null &&
+      router._previousRoute.transitionAnimationInProgress) {
+    transitionAnimationEnd(router._previousRoute);
   }
-  if (router.activeRoute != null) {
-    router.activeRoute.active = false;
+  if (router._activeRoute != null) {
+    router._activeRoute.active = false;
   }
-  router.previousRoute = router.activeRoute;
-  router.activeRoute = route;
-  router.activeRoute.active = true;
+  router._previousRoute = router._activeRoute;
+  router._activeRoute = route;
+  router._activeRoute.active = true;
 
   // import custom element or template
   if (route.imp != null) {
@@ -285,10 +287,10 @@ void importAndActivate(WebRouter router, String importUri, WebRoute route,
     print("Error: could not find/load page.");
   }
 
-  if (!importedURIs.containsKey(importUri)) {
+  if (!_importedURIs.containsKey(importUri)) {
     //TODO
     // hasn't been imported yet
-    importedURIs[importUri] = true;
+    _importedURIs[importUri] = true;
     //route.addEventListener('lazy-loaded', pageLoadedCallback);
     router._ajax.url = route.imp;
     router._ajax.onCoreResponse.first.then(
@@ -395,21 +397,21 @@ void activeElement(WebRouter router, Node element, RouteUri url,
   // /article/1), then we have to simply replace the route's content instead of animating a transition.
   if (!router.core_animated_pages ||
       eventDetail['route'] == eventDetail['oldRoute']) {
-    removeRouteContent(router.previousRoute);
+    removeRouteContent(router._previousRoute);
   }
 
   // add the new content
-  router.activeRoute.append(element);
+  router._activeRoute.append(element);
 
   // animate the transition if core-animated-pages are being used
   if (router.core_animated_pages) {
-    router.coreAnimatedPages.selected = router.activeRoute.path;
+    router._coreAnimatedPages.selected = router._activeRoute.path;
 
     // we already wired up transitionAnimationEnd() in init()
 
     // use to check if the previous route has finished animating before being removed
-    if (router.previousRoute != null) {
-      router.previousRoute.transitionAnimationInProgress = true;
+    if (router._previousRoute != null) {
+      router._previousRoute.transitionAnimationInProgress = true;
     }
   }
 
