@@ -44,12 +44,15 @@ class WebRouter extends PolymerElement {
 
   /// Is the router initilized already?
   bool _isInitialized = false;
-  /// Previous active route.
-  WebRoute _previousRoute;
   /// Previous active URL.
   RouteUri _previousUrl;
+  /// Previous active route.
+  WebRoute _previousRoute;
   /// Currently active route.
   WebRoute _activeRoute;
+  /// All routes.
+  List<WebRoute> _routes;
+
   /// CoreAnimatedPages element.
   CoreAnimatedPages _coreAnimatedPages;
   /// CoreAjax element for on-demand retrieving of route's elements.
@@ -81,6 +84,10 @@ class WebRouter extends PolymerElement {
     }
     _isInitialized = true;
     _previousUrl = new RouteUri.parse(window.location.href, mode);
+    _routes = querySelectorAll("web-route") as List<WebRoute>;
+    for (WebRoute route in _routes) {
+      route.router = this;
+    }
 
     // <app-router core-animated-pages transitions="hero-transition cross-fade">
     if (core_animated_pages) {
@@ -97,11 +104,8 @@ class WebRouter extends PolymerElement {
       // </app-router>
       //createShadowRoot();
 
-      List<WebRoute> webRoutes =
-          querySelectorAll("web-route") as List<WebRoute>;
-
       _coreAnimatedPages = new CoreAnimatedPages();
-      for (WebRoute route in webRoutes) {
+      for (WebRoute route in _routes) {
         _coreAnimatedPages.append(route);
       }
 
@@ -170,6 +174,7 @@ class WebRouter extends PolymerElement {
         url.search == _previousUrl.search &&
         url.isHashPath == _previousUrl.isHashPath) {
       scrollToHash(url.hash);
+      _previousUrl = url;
       return;
     }
     _previousUrl = url;
@@ -181,18 +186,10 @@ class WebRouter extends PolymerElement {
     }
 
     // find the first matching route
-    List<Element> elems;
-    if (core_animated_pages) {
-      elems = _coreAnimatedPages.children;
-    } else {
-      elems = children;
-    }
-    for (Element route in elems) {
-      if (route is WebRoute) {
-        if (testRoute(route.path, url.path, trailingSlash, route.regex)) {
-          activateRoute(this, route, url);
-          return;
-        }
+    for (WebRoute route in _routes) {
+      if (route.isMatch(url, trailingSlash != "ignore")) {
+        activateRoute(this, route, url);
+        return;
       }
     }
 
@@ -470,67 +467,6 @@ void scrollToHash(String hash) {
   new Timer(new Duration(milliseconds: 0), onTimerScrollToHash); //TODO
 }
 
-/// testRoute(routePath, urlPath, trailingSlashOption, isRegExp) - Test if the route's path matches the URL's path
-///
-/// Example routePath: '/example/*'
-/// Example urlPath = '/example/path'
-bool testRoute(String routePath, String urlPath, String trailingSlashOption,
-    bool isRegExp) {
-  // this algorithm tries to fail or succeed as quickly as possible for the most common cases
-
-  // handle trailing slashes (options: strict (default), ignore)
-  if (trailingSlashOption == 'ignore') {
-    // remove trailing / from the route path and URL path
-    if (urlPath.endsWith('/')) {
-      urlPath = urlPath.substring(0, urlPath.length - 1); //TODO
-    }
-    if (routePath.endsWith('/') && !isRegExp) {
-      routePath = routePath.substring(0, routePath.length - 1);
-    }
-  }
-
-  // test regular expressions
-  if (isRegExp) {
-    return testRegExString(routePath, urlPath);
-  }
-
-  // if the urlPath is an exact match or '*' then the route is a match
-  if (routePath == urlPath || routePath == '*') {
-    return true;
-  }
-
-  // look for wildcards
-  if (routePath.indexOf('*') == -1 && routePath.indexOf(':') == -1) {
-    // no wildcards and we already made sure it wasn't an exact match so the test fails
-    return false;
-  }
-
-  // example urlPathSegments = ['', example', 'path']
-  List<String> urlPathSegments = urlPath.split('/');
-
-  // example routePathSegments = ['', 'example', '*']
-  List<String> routePathSegments = routePath.split('/');
-
-  // there must be the same number of path segments or it isn't a match
-  if (urlPathSegments.length != routePathSegments.length) {
-    return false;
-  }
-
-  // check equality of each path segment
-  for (int i = 0; i < routePathSegments.length; i++) {
-    // the path segments must be equal, be a wildcard segment '*', or be a path parameter like ':id'
-    String routeSegment = routePathSegments[i];
-    if (routeSegment != urlPathSegments[i] &&
-        routeSegment != '*' &&
-        !routeSegment.startsWith(':')) {
-      // the path segment wasn't the same string and it wasn't a wildcard or parameter
-      return false;
-    }
-  }
-
-  // nothing failed. the route matches the URL.
-  return true;
-}
 
 /// routeArguments(routePath, urlPath, search, isRegExp) - Gets the path variables and query parameter values from the URL.
 Map routeArguments(String routePath, String urlPath, String search,
@@ -602,29 +538,6 @@ String typecast(String value) {
 
   // string
   return Uri.decodeComponent(value);
-}
-
-/// testRegExString(pattern, value) - Parse HTML attribute path="/^\/\w+\/\d+$/i" to a regular
-/// expression `new RegExp('^\/\w+\/\d+$', 'i')` and test against it.
-///
-/// note that 'i' is the only valid option. global 'g', multiline 'm', and sticky 'y' won't be valid matchers for a path.
-bool testRegExString(String pattern, String value) {
-  if (!pattern.startsWith('/')) {
-    // must start with a slash
-    return false;
-  }
-  pattern = pattern.substring(1);
-  var options = '';
-  if (pattern.endsWith('/')) {
-    pattern = pattern.substring(0, -1);
-  } else if (pattern.endsWith('/i')) {
-    pattern = pattern.substring(0, -2);
-    options = 'i';
-  } else {
-    // must end with a slash followed by zero or more options
-    return false;
-  }
-  return new RegExp(r"${pattern}").hasMatch(value); //TODO
 }
 
 class _TrusingNodeValidator implements NodeValidator {
