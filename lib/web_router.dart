@@ -12,8 +12,7 @@ import 'package:template_binding/template_binding.dart';
 
 import 'package:web_router/web_route.dart';
 import 'package:web_router/src/routeUri.dart';
-
-Map<String, bool> _importedURIs = {};
+import 'package:web_router/src/events.dart';
 
 /// web-router is a router element.
 /// Example usage:
@@ -51,7 +50,7 @@ class WebRouter extends PolymerElement {
   /// Currently active route.
   WebRoute _activeRoute;
   /// All routes.
-  List<WebRoute> _routes;
+  List<WebRoute> routes;
 
   /// CoreAnimatedPages element.
   CoreAnimatedPages _coreAnimatedPages;
@@ -59,6 +58,8 @@ class WebRouter extends PolymerElement {
   CoreAjax _ajax;
   /// Subscription of popstate events (for address change monitoring).
   StreamSubscription<PopStateEvent> _popStateSubscription;
+  /// Records URIs imported via core-ajax.
+  Map<String, bool> _importedURIs = {};
 
   @override
   WebRouter.created() : super.created();
@@ -69,6 +70,20 @@ class WebRouter extends PolymerElement {
     if (init != "manual") {
       initialize();
     }
+  }
+
+  @override
+  Node append(Node node) {
+    if (!_isInitialized || !core_animated_pages) {
+      super.append(node);
+    } else {
+      _coreAnimatedPages.append(node);
+    }
+    if (node is WebRoute) {
+      node.router = this;
+      routes.add(node);
+    }
+    return this;
   }
 
   @override
@@ -84,28 +99,26 @@ class WebRouter extends PolymerElement {
     }
     _isInitialized = true;
     _previousUrl = new RouteUri.parse(window.location.href, mode);
-    _routes = querySelectorAll("web-route") as List<WebRoute>;
-    for (WebRoute route in _routes) {
+    routes = querySelectorAll("web-route") as List<WebRoute>;
+    for (WebRoute route in routes) {
       route.router = this;
     }
 
     // <app-router core-animated-pages transitions="hero-transition cross-fade">
     if (core_animated_pages) {
-      // use shadow DOM to wrap the <app-route> elements in a <core-animated-pages> element
-      // <app-router>
+      // use shadow DOM to wrap the <web-route> elements in a <core-animated-pages> element
+      // <web-router>
       //   # shadowRoot
       //   <core-animated-pages>
-      //     # content in the light DOM
-      //     <app-route elem="home-page">
+      //     <web-route elem="home-page">
       //       <home-page>
       //       </home-page>
-      //     </app-route>
+      //     </web-route>
       //   </core-animated-pages>
-      // </app-router>
-      //createShadowRoot();
+      // </web-router>
 
       _coreAnimatedPages = new CoreAnimatedPages();
-      for (WebRoute route in _routes) {
+      for (WebRoute route in routes) {
         _coreAnimatedPages.append(route);
       }
 
@@ -181,84 +194,72 @@ class WebRouter extends PolymerElement {
 
     // fire a state-change event on the app-router and return early if the user called event.preventDefault()
     Map<String, String> eventDetail = {'path': url.path};
-    if (!_fireEvent('state-change', eventDetail, this)) {
+    if (!fireEvent(WebEvent.stateChange, eventDetail, this)) {
       return;
     }
 
     // find the first matching route
-    for (WebRoute route in _routes) {
+    for (WebRoute route in routes) {
       if (route.isMatch(url, trailingSlash != "ignore")) {
-        activateRoute(this, route, url);
+        _activateRoute(route, url);
         return;
       }
     }
 
-    _fireEvent('route-not-found', eventDetail, this);
+    fireEvent(WebEvent.routeNotFound, eventDetail, this);
+  }
+
+  /// Activate the route
+  void _activateRoute(WebRoute route, RouteUri url) {
+    if (route.redirect != null) {
+      go(route.redirect, replace: true);
+      return;
+    }
+
+    Map<String, Object> eventDetail = {
+      'path': url.path,
+      'route': route,
+      'oldRoute': _activeRoute
+    };
+    if (!fireEvent(WebEvent.activateRouteStart, eventDetail, this)) {
+      return;
+    }
+    if (!fireEvent(WebEvent.activateRouteStart, eventDetail, route)) {
+      return;
+    }
+
+    // update the references to the activeRoute and previousRoute. if you switch between routes quickly you may go to a
+    // new route before the previous route's transition animation has completed. if that's the case we need to remove
+    // the previous route's content before we replace the reference to the previous route.
+    if (_previousRoute != null &&
+        _previousRoute.transitionAnimationInProgress) {
+      transitionAnimationEnd(_previousRoute);
+    }
+    if (_activeRoute != null) {
+      _activeRoute.active = false;
+    }
+    _previousRoute = _activeRoute;
+    _activeRoute = route;
+    _activeRoute.active = true;
+
+    // import custom element or template
+    if (route.imp != null) {
+      importAndActivate(this, route.imp, route, url, eventDetail);
+    }
+    // pre-loaded custom element
+    else if (route.elem != null) {
+      activateCustomElement(this, route.elem, route, url, eventDetail);
+    }
+    // inline template
+    else if (route.children.length != 0 &&
+        route.children.first != null &&
+        route.children.first.tagName == 'TEMPLATE') {
+      activeTemplate(this, route.children.first, route, url, eventDetail);
+    }
   }
 }
 
 /*---------------------------------------------------------------------------*/
-
-/// fireEvent(type, detail, node) - Fire a new CustomEvent(type, detail) on the node
-///
-/// listen with document.querySelector('app-router').addEventListener(type, function(event) {
-///   event.detail, event.preventDefault()
-/// })
-bool _fireEvent(String type, Object detail, Node node) {
-  CustomEvent event =
-      new CustomEvent(type, detail: detail, canBubble: false, cancelable: true);
-  return node.dispatchEvent(event);
-}
-
-/// Activate the route
-void activateRoute(WebRouter router, WebRoute route, RouteUri url) {
-  if (route.redirect != null) {
-    router.go(route.redirect, replace: true);
-    return;
-  }
-
-  Map<String, Object> eventDetail = {
-    'path': url.path,
-    'route': route,
-    'oldRoute': router._activeRoute
-  };
-  if (!_fireEvent('activate-route-start', eventDetail, router)) {
-    //TODO: are dashes allowed in Polymer event names?
-    return;
-  }
-  if (!_fireEvent('activate-route-start', eventDetail, route)) {
-    return;
-  }
-
-  // update the references to the activeRoute and previousRoute. if you switch between routes quickly you may go to a
-  // new route before the previous route's transition animation has completed. if that's the case we need to remove
-  // the previous route's content before we replace the reference to the previous route.
-  if (router._previousRoute != null &&
-      router._previousRoute.transitionAnimationInProgress) {
-    transitionAnimationEnd(router._previousRoute);
-  }
-  if (router._activeRoute != null) {
-    router._activeRoute.active = false;
-  }
-  router._previousRoute = router._activeRoute;
-  router._activeRoute = route;
-  router._activeRoute.active = true;
-
-  // import custom element or template
-  if (route.imp != null) {
-    importAndActivate(router, route.imp, route, url, eventDetail);
-  }
-  // pre-loaded custom element
-  else if (route.elem != null) {
-    activateCustomElement(router, route.elem, route, url, eventDetail);
-  }
-  // inline template
-  else if (route.children.length != 0 &&
-      route.children.first != null &&
-      route.children.first.tagName == 'TEMPLATE') {
-    activeTemplate(router, route.children.first, route, url, eventDetail);
-  }
-}
 
 /// Import and activate a custom element or template.
 void importAndActivate(WebRouter router, String importUri, WebRoute route,
@@ -283,10 +284,10 @@ void importAndActivate(WebRouter router, String importUri, WebRoute route,
     print("Error: could not find/load page.");
   }
 
-  if (!_importedURIs.containsKey(importUri)) {
+  if (!router._importedURIs.containsKey(importUri)) {
     //TODO
     // hasn't been imported yet
-    _importedURIs[importUri] = true;
+    router._importedURIs[importUri] = true;
     //route.addEventListener('lazy-loaded', pageLoadedCallback);
     router._ajax.url = route.imp;
     router._ajax.onCoreResponse.first.then(
@@ -363,7 +364,7 @@ void activeTemplate(WebRouter router, TemplateElement template, WebRoute route,
 //	} else {
 //		templateInstance = document.importNode(template.content, true);
 //	}
-  //FIXME(km): check if it works
+  //TODO(km): check if it works
   templateInstance = templateBind(template).createInstance(model);
   activeElement(router, templateInstance, url, eventDetail);
 }
@@ -378,8 +379,8 @@ Map<String, Object> createModel(WebRouter router, WebRoute route, RouteUri url,
     print("router.templateInstance.model: ${router.templateInstance.model}");
   }
   eventDetail['model'] = model;
-  _fireEvent('before-data-binding', eventDetail, router);
-  _fireEvent('before-data-binding', eventDetail, eventDetail['route']);
+  fireEvent('before-data-binding', eventDetail, router);
+  fireEvent('before-data-binding', eventDetail, eventDetail['route']);
   return eventDetail['model'];
 }
 
@@ -416,8 +417,8 @@ void activeElement(WebRouter router, Node element, RouteUri url,
     scrollToHash(url.hash);
   }
 
-  _fireEvent('activate-route-end', eventDetail, router);
-  _fireEvent('activate-route-end', eventDetail, eventDetail['route']);
+  fireEvent('activate-route-end', eventDetail, router);
+  fireEvent('activate-route-end', eventDetail, eventDetail['route']);
 }
 
 /// Call when the previousRoute has finished the transition animation out.
@@ -466,7 +467,6 @@ void scrollToHash(String hash) {
 
   new Timer(new Duration(milliseconds: 0), onTimerScrollToHash); //TODO
 }
-
 
 /// routeArguments(routePath, urlPath, search, isRegExp) - Gets the path variables and query parameter values from the URL.
 Map routeArguments(String routePath, String urlPath, String search,

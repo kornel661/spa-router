@@ -48,6 +48,15 @@ class WebRoute extends PolymerElement with Observable {
     //print("ready: path ${path}!\n");
   }
 
+  @override
+  void remove() {
+  	if (router != null) {
+  		router.routes.remove(this);
+  		router = null;
+  	}
+  	super.remove();
+  }
+
   /// Sets the content of the route.
   void setContent(String content, NodeValidator validator) {
     _contentContainer.setInnerHtml(content, validator: validator);
