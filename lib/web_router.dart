@@ -73,7 +73,7 @@ class WebRouter extends PolymerElement {
   }
 
   @override
-  Node append(Node node) {
+  Node append(Node node) { // TODO(km): check if it works
     if (!_isInitialized || !core_animated_pages) {
       super.append(node);
     } else {

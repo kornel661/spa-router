@@ -50,11 +50,11 @@ class WebRoute extends PolymerElement with Observable {
 
   @override
   void remove() {
-  	if (router != null) {
-  		router.routes.remove(this);
-  		router = null;
-  	}
-  	super.remove();
+    if (router != null) {
+      router.routes.remove(this);
+      router = null;
+    }
+    super.remove();
   }
 
   /// Sets the content of the route.
@@ -83,7 +83,15 @@ class WebRoute extends PolymerElement with Observable {
 
     // test regular expressions
     if (regex) {
-      return _testRegExString(routePath, uriPath);
+      RegExp regexp;
+      try {
+        regexp = new RegExp(routePath);
+      } catch (e) {
+        print(
+            "web-route: error creating regular expression from `${routePath}`. ${e.toString()}");
+        return false;
+      }
+      return regexp.hasMatch(uriPath);
     }
 
     // if the urlPath is an exact match or '**' then the route is a match
@@ -127,17 +135,4 @@ class WebRoute extends PolymerElement with Observable {
   @override
   String toString() =>
       "web-route (path: $path, imp: $imp, elem: $elem, template: $template, regex: $regex, redirect: $redirect, transitionAnimationInProgress: $transitionAnimationInProgress, active: $active, bindRouter: $bindRouter)";
-}
-
-/// _testRegExString(pattern, value) tests if string value maches the regular
-///   expression pattern.
-bool _testRegExString(String pattern, String value) {
-  RegExp regexp;
-  try {
-    regexp = new RegExp(pattern);
-  } catch (e) {
-    print(
-        "web-route: error creating regular expression from `${pattern}`. ${e.toString()}");
-  }
-  return regexp.hasMatch(value);
 }
