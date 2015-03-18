@@ -4,6 +4,7 @@
  */
 
 import 'package:polymer/polymer.dart';
+import 'package:core_elements/core_ajax_dart.dart';
 import 'dart:html';
 import 'dart:async';
 import 'package:template_binding/template_binding.dart';
@@ -14,13 +15,13 @@ import 'package:web_router/src/events.dart';
 
 /// web-route is an element describing a route within a web-router element.
 /// Some syntax:
-/// <app-route path="/path" [imp="/page/cust-elem.html"] [elem="cust-el"] [template] [regex] [bindRouter]></app-route>
+/// <web-route path="/path" [impl="/page/cust-elem.html"] [elem="cust-el"] [template] [regex] [bindRouter]></app-route>
 @CustomTag('web-route')
 class WebRoute extends PolymerElement with Observable {
   /// Path of the route.
   @published String path = "/";
   /// Path to the implementation of the element to be shown.
-  @published String imp;
+  @published String impl;
   /// Name of the element to be shown.
   @published String elem;
   /// If not empty the route redirects there.
@@ -41,6 +42,11 @@ class WebRoute extends PolymerElement with Observable {
 
   ContentElement _contentElem;
   TemplateElement _templateElem;
+  /// CoreAjax element for on-demand retrieving of route's elements.
+  CoreAjax _ajax;
+  /// Was the _ajax.go() executed?
+  bool _ajaxLoaded = false;
+  /// Route's current uri.
   RouteUri uri;
 
   @override
@@ -50,6 +56,16 @@ class WebRoute extends PolymerElement with Observable {
   void ready() {
     super.ready();
     _contentElem = querySelector("content");
+    _ajax = $['ajax'];
+    _ajax.onCoreResponse.first.then((CustomEvent e) {
+      // add definition of elem
+      _contentElem.setInnerHtml(e.detail['response'],
+          validator: _nodeValidator);
+      // add elem (if the route is still active)
+      if (router.activeRoute == this) {
+        _createCustomElem();
+      }
+    });
     if (template) {
       Element elem = _contentElem.querySelector("template");
       if (elem is TemplateElement) {
@@ -72,12 +88,12 @@ class WebRoute extends PolymerElement with Observable {
 
   @override
   String toString() =>
-      "web-route (path: $path, imp: $imp, elem: $elem, template: $template, regex: $regex, redirect: $redirect, transitionAnimationInProgress: $transitionAnimationInProgress, active: $active, bindRouter: $bindRouter)";
+      "web-route (path: $path, imp: $impl, elem: $elem, template: $template, regex: $regex, redirect: $redirect, transitionAnimationInProgress: $transitionAnimationInProgress, active: $active, bindRouter: $bindRouter)";
 
   /// Sets the content of the route.
   /// TODO
-  void setContent(String content, NodeValidator validator) {
-    _contentElem.setInnerHtml(content, validator: validator);
+  void setContent(String content) {
+    _contentElem.setInnerHtml(content, validator: _nodeValidator);
   }
 
   /// Returns the <content> element of the route.
@@ -181,25 +197,42 @@ class WebRoute extends PolymerElement with Observable {
     }
 
     router.activeRoute = this;
-    if (!router.animated) {
+    if (!router.animated && router.previousRoute != null) {
       router.previousRoute.clearContent();
     } else {
       // TODO(km): arrange to clear the previous route when animation ends
     }
 
-    if (imp != null) {
+    if (impl != null) {
+      // discern the name of the element to create
+      if (elem == null) {
+        elem =
+            impl.split('/').last.replaceAll('.html', '').replaceAll('_', '-');
+      }
       // import custom element or template
-      //importAndActivate(this, route.imp, route, url, eventDetail);
+      if (!_ajaxLoaded) {
+        _ajaxLoaded = true;
+        // now download definition of elem and add it
+        _ajax.go();
+      } else {
+        // definition is loaded already
+        _createCustomElem();
+      }
     } else if (elem != null) {
       // pre-loaded custom element
-      Element customElem = document.createElement(elem);
-			customElem.attributes.addAll(model);
-			append(customElem);
+      _createCustomElem();
     } else if (_templateElem != null) {
       // inline template
       append(templateBind(_templateElem).createInstance(model));
     }
     router.playAnimation();
+  }
+
+  /// Creates custom element elem. Definition of elem needs to be loaded already.
+  void _createCustomElem() {
+    Element customElem = document.createElement(elem);
+    customElem.attributes.addAll(model);
+    append(customElem);
   }
 
   /// Returns model for the route's element (for binding).
@@ -270,3 +303,14 @@ class WebRoute extends PolymerElement with Observable {
     new Future(delayedScrollToHash);
   }
 }
+
+class _TrusingNodeValidator implements NodeValidator {
+  @override
+  bool allowsAttribute(Element element, String attributeName, String value) =>
+      true;
+
+  @override
+  bool allowsElement(Element element) => true;
+}
+
+_TrusingNodeValidator _nodeValidator = new _TrusingNodeValidator();

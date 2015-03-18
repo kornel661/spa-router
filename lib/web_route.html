@@ -4,11 +4,14 @@
 -->
 
 <link rel="import" href="../../packages/polymer/polymer.html">
+<link rel="import" href="../../packages/core_elements/core_ajax_dart.html">
 
-<polymer-element name="web-route" attributes="path imp elem template regex redirect active bindRouter">
+<polymer-element name="web-route" attributes="path impl elem template regex redirect active bindRouter">
 	<template>
 		<link href="web_route.css" rel="stylesheet">
 		<content></content>
+		<core-ajax-dart id="ajax" handleAs="text" auto="false" url="{{impl}}">
+		</core-ajax-dart>
 	</template>
 	<script type="application/dart" src="web_route.dart"></script>
 </polymer-element>
