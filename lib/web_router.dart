@@ -104,7 +104,7 @@ class WebRouter extends PolymerElement {
     }
     _isInitialized = true;
     //_activeUri = new RouteUri.parse(window.location.href, mode);
-    routes = querySelectorAll("web-route") as List<WebRoute>;
+    routes = this.querySelectorAll("web-route") as List<WebRoute>;
     for (WebRoute route in routes) {
       route.router = this;
     }
