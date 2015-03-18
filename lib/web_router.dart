@@ -16,8 +16,8 @@ import 'package:web_router/src/events.dart';
 
 /// web-router is a router element.
 /// Example usage:
-/// 	<app-router [init="auto|manual"] [mode="hash|pushstate"] [trailingSlash="strict|ignore"] [shadow]></app-router>
-/// 	<app-router core_animated_pages transitions="hero-transition cross-fade">
+/// 	<web-router [init="auto|manual"] [mode="hash|pushstate"] [trailingSlash="strict|ignore"] [shadow]></app-router>
+/// 	<web-router animated transitions="hero-transition cross-fade">
 @CustomTag('web-router')
 class WebRouter extends PolymerElement {
 
@@ -35,7 +35,7 @@ class WebRouter extends PolymerElement {
   /// If string then even 123 will be passed as a string '123'?
   @published String typecast = "auto";
   /// Whether to use Polymer's core-animated-pages for transitions.
-  @published bool core_animated_pages = false;
+  @published bool animated = false;
   /// Which transitions of the core-animated-pages to use.
   /// E.g., transitions="hero-transition cross-fade"
   @published String transitions = "";
@@ -43,14 +43,26 @@ class WebRouter extends PolymerElement {
 
   /// Is the router initilized already?
   bool _isInitialized = false;
-  /// Previous active URL.
-  RouteUri _previousUrl;
+  /// Active URL.
+  RouteUri _activeUri;
   /// Previous active route.
   WebRoute _previousRoute;
   /// Currently active route.
   WebRoute _activeRoute;
   /// All routes.
   List<WebRoute> routes;
+
+  RouteUri get activeUri => _activeUri;
+  WebRoute get activeRoute => _activeRoute;
+  set activeRoute(WebRoute r) {
+    if (animated && _previousRoute != null) {
+      // make sure that the content is cleared even if there was an animation in progress
+      _previousRoute.clearContent();
+    }
+    _previousRoute = _activeRoute;
+    _activeRoute = r;
+  }
+  WebRoute get previousRoute => _previousRoute;
 
   /// CoreAnimatedPages element.
   CoreAnimatedPages _coreAnimatedPages;
@@ -73,8 +85,9 @@ class WebRouter extends PolymerElement {
   }
 
   @override
-  Node append(Node node) { // TODO(km): check if it works
-    if (!_isInitialized || !core_animated_pages) {
+  Node append(Node node) {
+    // TODO(km): check if it works
+    if (!_isInitialized || !animated) {
       super.append(node);
     } else {
       _coreAnimatedPages.append(node);
@@ -98,14 +111,14 @@ class WebRouter extends PolymerElement {
       return;
     }
     _isInitialized = true;
-    _previousUrl = new RouteUri.parse(window.location.href, mode);
+    _activeUri = new RouteUri.parse(window.location.href, mode);
     routes = querySelectorAll("web-route") as List<WebRoute>;
     for (WebRoute route in routes) {
       route.router = this;
     }
 
     // <app-router core-animated-pages transitions="hero-transition cross-fade">
-    if (core_animated_pages) {
+    if (animated) {
       // use shadow DOM to wrap the <web-route> elements in a <core-animated-pages> element
       // <web-router>
       //   # shadowRoot
@@ -178,21 +191,27 @@ class WebRouter extends PolymerElement {
   }
 
   /// Find the first <web-route> that matches the current URL and change the active route.
+  /// Wired to PopStateEvents.
   void _update() {
     RouteUri url = new RouteUri.parse(window.location.href, mode);
 
     // don't load a new route if only the hash fragment changed
-    if (url.hash != _previousUrl.hash &&
-        url.path == _previousUrl.path &&
-        url.search == _previousUrl.search &&
-        url.isHashPath == _previousUrl.isHashPath) {
-      scrollToHash(url.hash);
-      _previousUrl = url;
+    if (activeUri != null &&
+        url.path == activeUri.path &&
+        url.search == activeUri.search &&
+        url.isHashPath == activeUri.isHashPath) {
+      if (activeRoute != null) {
+        activeRoute.uri = url;
+        if (url.hash != activeUri.hash) {
+          activeRoute.scrollToHash();
+        }
+      }
+      _activeUri = url;
       return;
     }
-    _previousUrl = url;
+    _activeUri = url;
 
-    // fire a state-change event on the app-router and return early if the user called event.preventDefault()
+    // fire a state-change event on the web-router and return early if the user called event.preventDefault()
     Map<String, String> eventDetail = {'path': url.path};
     if (!fireEvent(WebEvent.stateChange, eventDetail, this)) {
       return;
@@ -201,7 +220,7 @@ class WebRouter extends PolymerElement {
     // find the first matching route
     for (WebRoute route in routes) {
       if (route.isMatch(url, trailingSlash != "ignore")) {
-        _activateRoute(route, url);
+        route.activate(url);
         return;
       }
     }
@@ -209,52 +228,14 @@ class WebRouter extends PolymerElement {
     fireEvent(WebEvent.routeNotFound, eventDetail, this);
   }
 
-  /// Activate the route
-  void _activateRoute(WebRoute route, RouteUri url) {
-    if (route.redirect != null) {
-      go(route.redirect, replace: true);
-      return;
-    }
-
-    Map<String, Object> eventDetail = {
-      'path': url.path,
-      'route': route,
-      'oldRoute': _activeRoute
-    };
-    if (!fireEvent(WebEvent.activateRouteStart, eventDetail, this)) {
-      return;
-    }
-    if (!fireEvent(WebEvent.activateRouteStart, eventDetail, route)) {
-      return;
-    }
-
-    // update the references to the activeRoute and previousRoute. if you switch between routes quickly you may go to a
-    // new route before the previous route's transition animation has completed. if that's the case we need to remove
-    // the previous route's content before we replace the reference to the previous route.
-    if (_previousRoute != null &&
-        _previousRoute.transitionAnimationInProgress) {
-      transitionAnimationEnd(_previousRoute);
-    }
-    if (_activeRoute != null) {
-      _activeRoute.active = false;
-    }
-    _previousRoute = _activeRoute;
-    _activeRoute = route;
-    _activeRoute.active = true;
-
-    // import custom element or template
-    if (route.imp != null) {
-      importAndActivate(this, route.imp, route, url, eventDetail);
-    }
-    // pre-loaded custom element
-    else if (route.elem != null) {
-      activateCustomElement(this, route.elem, route, url, eventDetail);
-    }
-    // inline template
-    else if (route.children.length != 0 &&
-        route.children.first != null &&
-        route.children.first.tagName == 'TEMPLATE') {
-      activeTemplate(this, route.children.first, route, url, eventDetail);
+  /// Plays the core-animated-pages animation (if required) and scrolls to hash.
+  void playAnimation() {
+    // animate the transition if core-animated-pages are being used
+    if (animated) {
+      _coreAnimatedPages.selected = _activeRoute.path;
+      // TODO(km): after animation finishes clear invisible routes & scroll to hash
+    } else {
+      activeRoute.scrollToHash();
     }
   }
 }
@@ -313,8 +294,8 @@ void activateImport(WebRouter router, Element contentHtml, String importUri,
   if (route.active) {
     if (route.template) {
       // template
-      activeTemplate(router,
-          contentHtml.querySelector('template'), route, url, eventDetail);
+      activeTemplate(router, contentHtml.querySelector('template'), route, url,
+          eventDetail);
     } else {
       // custom element
       String elementName;
@@ -369,21 +350,6 @@ void activeTemplate(WebRouter router, TemplateElement template, WebRoute route,
   activeElement(router, templateInstance, url, eventDetail);
 }
 
-/// Creates the route's model.
-Map<String, Object> createModel(WebRouter router, WebRoute route, RouteUri url,
-    Map<String, Object> eventDetail) {
-  Map<String, Object> model = routeArguments(route.getAttribute('path'),
-      url.path, url.search, route.regex, router.typecast == 'auto');
-  if (route.bindRouter != null || router.bindRouter != null) {
-    model['router'] = router;
-    print("router.templateInstance.model: ${router.templateInstance.model}");
-  }
-  eventDetail['model'] = model;
-  fireEvent('before-data-binding', eventDetail, router);
-  fireEvent('before-data-binding', eventDetail, eventDetail['route']);
-  return eventDetail['model'];
-}
-
 /// Replaces the active route's content with the new element.
 void activeElement(WebRouter router, Node element, RouteUri url,
     Map<String, Object> eventDetail) {
@@ -392,8 +358,7 @@ void activeElement(WebRouter router, Node element, RouteUri url,
   // UNLESS
   // if the route we're navigating to matches the same app-route (ex: path="/article/:id" navigating from /article/0 to
   // /article/1), then we have to simply replace the route's content instead of animating a transition.
-  if (!router.core_animated_pages ||
-      eventDetail['route'] == eventDetail['oldRoute']) {
+  if (!router.animated || eventDetail['route'] == eventDetail['oldRoute']) {
     removeRouteContent(router._previousRoute);
   }
 
@@ -401,7 +366,7 @@ void activeElement(WebRouter router, Node element, RouteUri url,
   router._activeRoute.append(element);
 
   // animate the transition if core-animated-pages are being used
-  if (router.core_animated_pages) {
+  if (router.animated) {
     router._coreAnimatedPages.selected = router._activeRoute.path;
 
     // we already wired up transitionAnimationEnd() in init()
@@ -413,7 +378,7 @@ void activeElement(WebRouter router, Node element, RouteUri url,
   }
 
   // scroll to the URL hash if it's present
-  if (url.hash != null && !router.core_animated_pages) {
+  if (url.hash != null && !router.animated) {
     scrollToHash(url.hash);
   }
 
@@ -441,103 +406,6 @@ void removeRouteContent(WebRoute route) {
     }
     route.children = newChildren;
   }
-}
-
-/// Scroll to the element with id="hash" or name="hash".
-void scrollToHash(String hash) {
-  if (hash == null || hash == '') return;
-
-  // wait for the browser's scrolling to finish before we scroll to the hash
-  // ex: http://example.com/#/page1#middle
-  // the browser will scroll to an element with id or name `/page1#middle` when the page finishes loading. if it doesn't exist
-  // it will scroll to the top of the page. let the browser finish the current event loop and scroll to the top of the page
-  // before we scroll to the element with id or name `middle`.
-
-  void onTimerScrollToHash() {
-    Element hashElement = document.querySelector('html /deep/ ' + hash);
-    if (hashElement == null) {
-      hashElement = document
-          .querySelector('html /deep/ [name="' + hash.substring(1) + '"]');
-    }
-    if (hashElement != null /*&& hashElement.scrollIntoView*/) {
-      //TODO
-      hashElement.scrollIntoView(ScrollAlignment.TOP);
-    }
-  }
-
-  new Timer(new Duration(milliseconds: 0), onTimerScrollToHash); //TODO
-}
-
-/// routeArguments(routePath, urlPath, search, isRegExp) - Gets the path variables and query parameter values from the URL.
-Map routeArguments(String routePath, String urlPath, String search,
-    bool isRegExp, bool autoTypecast) {
-  Map<String, String> args = {};
-
-  // regular expressions can't have path variables
-  if (!isRegExp) {
-    // example urlPathSegments = ['', example', 'path']
-    List<String> urlPathSegments = urlPath.split('/');
-
-    // example routePathSegments = ['', 'example', '*']
-    List<String> routePathSegments = routePath.split('/');
-
-    // get path variables
-    // urlPath '/customer/123'
-    // routePath '/customer/:id'
-    // parses id = '123'
-    for (int index = 0; index < routePathSegments.length; index++) {
-      String routeSegment = routePathSegments[index];
-      if (routeSegment.startsWith(':')) {
-        args[routeSegment.substring(1)] = urlPathSegments[index];
-      }
-    }
-  }
-
-  List<String> queryParameters = [];
-  if (search.length > 0) {
-    queryParameters = search.substring(1).split('&');
-  }
-  // split() on an empty string has a strange behavior of returning [''] instead of []
-  if (queryParameters.length == 1 && queryParameters[0] == '') {
-    queryParameters = [];
-  }
-  for (int i = 0; i < queryParameters.length; i++) {
-    String queryParameter = queryParameters[i];
-    List<String> queryParameterParts = queryParameter.split('=');
-    args[queryParameterParts[0]] =
-        queryParameterParts.sublist(1).join('='); //TODO
-  }
-
-  if (autoTypecast) {
-    // parse the arguments into unescaped strings, numbers, or booleans
-    for (String arg in args.keys) {
-      args[arg] = typecast(args[arg]);
-    }
-  }
-
-  return args;
-}
-
-/// typecast(value) - Typecast the string value to an unescaped string, number, or boolean.
-String typecast(String value) {
-  // bool
-  if (value == 'true') {
-    return 'true';
-  }
-  if (value == 'false') {
-    return 'false';
-  }
-
-  // number
-  if (value != '' && !value.startsWith('0')) {
-    int number = int.parse(value, onError: (string) => 0);
-    if (number != 0) {
-      return number.toString();
-    }
-  }
-
-  // string
-  return Uri.decodeComponent(value);
 }
 
 class _TrusingNodeValidator implements NodeValidator {

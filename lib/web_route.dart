@@ -5,9 +5,12 @@
 
 import 'package:polymer/polymer.dart';
 import 'dart:html';
+import 'dart:async';
+import 'package:template_binding/template_binding.dart';
 
 import 'package:web_router/web_router.dart';
 import 'package:web_router/src/routeUri.dart';
+import 'package:web_router/src/events.dart';
 
 /// web-route is an element describing a route within a web-router element.
 /// Some syntax:
@@ -36,7 +39,9 @@ class WebRoute extends PolymerElement with Observable {
   /// Route's router. (Set by the router during initialization.)
   WebRouter router;
 
-  ContentElement _contentContainer;
+  ContentElement _contentElem;
+  TemplateElement _templateElem;
+  RouteUri uri;
 
   @override
   WebRoute.created() : super.created();
@@ -44,7 +49,15 @@ class WebRoute extends PolymerElement with Observable {
   @override
   void ready() {
     super.ready();
-    _contentContainer = querySelector("content");
+    _contentElem = querySelector("content");
+    if (template) {
+      Element elem = _contentElem.querySelector("template");
+      if (elem is TemplateElement) {
+        _templateElem = elem;
+      } else {
+        print("web-route with `template=true` couldn't find its template");
+      }
+    }
     //print("ready: path ${path}!\n");
   }
 
@@ -57,17 +70,33 @@ class WebRoute extends PolymerElement with Observable {
     super.remove();
   }
 
+  @override
+  String toString() =>
+      "web-route (path: $path, imp: $imp, elem: $elem, template: $template, regex: $regex, redirect: $redirect, transitionAnimationInProgress: $transitionAnimationInProgress, active: $active, bindRouter: $bindRouter)";
+
   /// Sets the content of the route.
+  /// TODO
   void setContent(String content, NodeValidator validator) {
-    _contentContainer.setInnerHtml(content, validator: validator);
+    _contentElem.setInnerHtml(content, validator: validator);
   }
 
   /// Returns the <content> element of the route.
+  /// TODO
   ContentElement getContentElement() {
-    return _contentContainer;
+    return _contentElem;
   }
 
-  /// isMatch(uri, strictSlash) test if the route's path matches the URI's path.
+  /// Clears route's content.
+  void clearContent() {
+    //_uri = null;
+    List<Element> newChildren = [];
+    if (_templateElem != null) {
+      newChildren.add(_templateElem);
+    }
+    this.children = newChildren;
+  }
+
+  /// isMatch(uri, strictSlash) tests if the route's path matches the URI's path.
   bool isMatch(RouteUri uri, [bool strictSlash = true]) {
     String uriPath = uri.path;
     String routePath = this.path;
@@ -86,12 +115,12 @@ class WebRoute extends PolymerElement with Observable {
       RegExp regexp;
       try {
         regexp = new RegExp(routePath);
+        return regexp.hasMatch(uriPath);
       } catch (e) {
         print(
             "web-route: error creating regular expression from `${routePath}`. ${e.toString()}");
         return false;
       }
-      return regexp.hasMatch(uriPath);
     }
 
     // if the urlPath is an exact match or '**' then the route is a match
@@ -132,7 +161,112 @@ class WebRoute extends PolymerElement with Observable {
     return true;
   }
 
-  @override
-  String toString() =>
-      "web-route (path: $path, imp: $imp, elem: $elem, template: $template, regex: $regex, redirect: $redirect, transitionAnimationInProgress: $transitionAnimationInProgress, active: $active, bindRouter: $bindRouter)";
+  /// Activate the route
+  void activate(RouteUri url) {
+    if (redirect != null) {
+      router.go(redirect, replace: true);
+      return;
+    }
+    uri = url;
+    Map<String, Object> eventDetail = {
+      'path': url.path,
+      'route': this,
+      'oldRoute': router.activeRoute
+    };
+    if (!fireEvent(WebEvent.activateRouteStart, eventDetail, this)) {
+      return;
+    }
+    if (!fireEvent(WebEvent.activateRouteStart, eventDetail, router)) {
+      return;
+    }
+
+    router.activeRoute = this;
+    if (!router.animated) {
+      router.previousRoute.clearContent();
+    } else {
+      // TODO(km): arrange to clear the previous route when animation ends
+    }
+
+    if (imp != null) {
+      // import custom element or template
+      //importAndActivate(this, route.imp, route, url, eventDetail);
+    } else if (elem != null) {
+      // pre-loaded custom element
+      Element customElem = document.createElement(elem);
+			customElem.attributes.addAll(model);
+			append(customElem);
+    } else if (_templateElem != null) {
+      // inline template
+      append(templateBind(_templateElem).createInstance(model));
+    }
+    router.playAnimation();
+  }
+
+  /// Returns model for the route's element (for binding).
+  Map<String, Object> get model {
+    Map<String, Object> model = new Map<String, Object>();
+    if (bindRouter != null || router.bindRouter != null) {
+      model['router'] = router;
+    }
+    if (uri == null) {
+      print("web-route: can't create model, _uri==null");
+      return model;
+    }
+    model['uri'] = uri;
+    // regular expressions can't have path variables
+    if (!regex) {
+      // example urlPathSegments = ['', example', 'path']
+      List<String> urlPathSegments = uri.path.split('/');
+
+      // example routePathSegments = ['', 'example', '*']
+      List<String> routePathSegments = path.split('/');
+
+      // get path variables
+      // urlPath '/customer/123'
+      // routePath '/customer/:id'
+      // parses id = '123'
+      for (int index = 0; index < routePathSegments.length; index++) {
+        String routeSegment = routePathSegments[index];
+        if (routeSegment.startsWith(':')) {
+          model[routeSegment.substring(1)] = urlPathSegments[index];
+        }
+      }
+    }
+    List<String> queryParameters = [];
+    if (uri.search.length > 0) {
+      queryParameters = uri.search.substring(1).split('&');
+    }
+    // split() on an empty string returns ['']
+    if (queryParameters.length == 1 && queryParameters[0] == '') {
+      queryParameters = [];
+    }
+    for (int i = 0; i < queryParameters.length; i++) {
+      List<String> queryParameterParts = queryParameters[i].split('=');
+      if (queryParameterParts.length > 1) {
+        model[queryParameterParts[0]] =
+            queryParameterParts.sublist(1).join('=');
+      }
+    }
+    return model;
+  }
+
+  /// Scrolls to the element with id="hash" or name="hash".
+  /// TODO(km): test & check
+  void scrollToHash() {
+    String hash = uri.hash;
+    if (hash == null || hash == '') return;
+
+    void delayedScrollToHash() {
+      Element hashElement = document.querySelector('html /deep/ ' + hash);
+      if (hashElement == null) {
+        hashElement = document
+            .querySelector('html /deep/ [name="' + hash.substring(1) + '"]');
+      }
+      if (hashElement != null) {
+        hashElement.scrollIntoView(ScrollAlignment.TOP);
+      }
+    }
+    // TODO(km): is it working/necessary? or maybe scheduleMicrotask()?
+    new Future(delayedScrollToHash);
+  }
 }

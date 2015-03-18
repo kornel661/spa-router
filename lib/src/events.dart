@@ -15,6 +15,7 @@ bool fireEvent(String type, Object detail, Node node) {
 
 class WebEvent {
   // TODO: are dashes allowed in Polymer event names?
+  /// fired on the route & router when the route is activated
   static const activateRouteStart = 'activate-route-start';
   static const routeNotFound = 'route-not-found';
   static const stateChange = 'state-change';
