@@ -55,7 +55,7 @@ class WebRoute extends PolymerElement with Observable {
   @override
   void ready() {
     super.ready();
-    _contentElem = querySelector("content");
+    _contentElem = shadowRoot.querySelector("content");
     _ajax = $['ajax'];
     _ajax.onCoreResponse.first.then((CustomEvent e) {
       // add definition of elem
@@ -66,15 +66,12 @@ class WebRoute extends PolymerElement with Observable {
         _createCustomElem();
       }
     });
-    if (template) {
-      Element elem = _contentElem.querySelector("template");
-      if (elem is TemplateElement) {
-        _templateElem = elem;
-      } else {
-        print("web-route with `template=true` couldn't find its template");
-      }
+    Element elem = this.querySelector("template");
+    //elem = children.first;
+    if (elem is TemplateElement) {
+      _templateElem = elem;
+      //print("ready: path ${path}!\n");
     }
-    //print("ready: path ${path}!\n");
   }
 
   @override
@@ -105,6 +102,7 @@ class WebRoute extends PolymerElement with Observable {
   /// Clears route's content.
   void clearContent() {
     //_uri = null;
+    print("log: clearing content");
     List<Element> newChildren = [];
     if (_templateElem != null) {
       newChildren.add(_templateElem);
@@ -202,7 +200,7 @@ class WebRoute extends PolymerElement with Observable {
     } else {
       // TODO(km): arrange to clear the previous route when animation ends
     }
-
+    print("log: route: about to create an element");
     if (impl != null) {
       // discern the name of the element to create
       if (elem == null) {
@@ -220,9 +218,12 @@ class WebRoute extends PolymerElement with Observable {
       }
     } else if (elem != null) {
       // pre-loaded custom element
+      print("log: creating pre-loaded element");
       _createCustomElem();
     } else if (_templateElem != null) {
       // inline template
+      print(
+          "log: instatiating a template: ${_templateElem.innerHtml.substring(0,10)}");
       append(templateBind(_templateElem).createInstance(model));
     }
     router.playAnimation();

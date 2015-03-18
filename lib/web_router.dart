@@ -81,10 +81,10 @@ class WebRouter extends PolymerElement {
   @override
   Node append(Node node) {
     // TODO(km): check if it works
-  	if (!_isInitialized) {
-  		super.append(node);
-  		return this;
-  	}
+    if (!_isInitialized) {
+      super.append(node);
+      return this;
+    }
     if (!animated) {
       super.append(node);
     } else {
@@ -180,7 +180,7 @@ class WebRouter extends PolymerElement {
   /// Find the first <web-route> that matches the current URL and change the active route.
   /// Wired to PopStateEvents.
   void _update() {
-  	print("log: update");
+    print("log: update");
     RouteUri url = new RouteUri.parse(window.location.href, mode);
 
     // don't load a new route if only the hash fragment changed
@@ -208,12 +208,12 @@ class WebRouter extends PolymerElement {
     // find the first matching route
     for (WebRoute route in routes) {
       if (route.isMatch(url, trailingSlash != "ignore")) {
-        route.activate(url);
         print("log: route matched");
+        route.activate(url);
         return;
       }
     }
-		print("log: route not found");
+    print("log: route not found");
     fireEvent(WebEvent.routeNotFound, eventDetail, this);
   }
 
