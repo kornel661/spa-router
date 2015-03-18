@@ -10,7 +10,7 @@ import 'dart:async';
 import 'package:template_binding/template_binding.dart';
 
 import 'package:web_router/web_router.dart';
-import 'package:web_router/src/routeUri.dart';
+import 'package:web_router/src/routeuri.dart';
 import 'package:web_router/src/events.dart';
 
 /// web-route is an element describing a route within a web-router element.

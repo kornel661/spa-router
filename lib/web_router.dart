@@ -9,7 +9,7 @@ import 'dart:async';
 import 'package:core_elements/core_animated_pages.dart';
 
 import 'package:web_router/web_route.dart';
-import 'package:web_router/src/routeUri.dart';
+import 'package:web_router/src/routeuri.dart';
 import 'package:web_router/src/events.dart';
 
 /// web-router is a router element.
