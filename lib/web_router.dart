@@ -28,10 +28,6 @@ class WebRouter extends PolymerElement {
   /// trailingSlash="strict|ignore"
   /// If ignore then '/home' matches '/home/' as well.
   @published String trailingSlash = "strict";
-  @published bool shadow = false;
-  /// typecast="auto|string"
-  /// If string then even 123 will be passed as a string '123'?
-  @published String typecast = "auto";
   /// Whether to use Polymer's core-animated-pages for transitions.
   @published bool animated = false;
   /// Which transitions of the core-animated-pages to use.
@@ -83,7 +79,7 @@ class WebRouter extends PolymerElement {
     // TODO(km): check if it works
     if (!_isInitialized) {
       super.append(node);
-      return this;
+      return node;
     }
     if (!animated) {
       super.append(node);
@@ -94,7 +90,7 @@ class WebRouter extends PolymerElement {
       node.router = this;
       routes.add(node);
     }
-    return this;
+    return node;
   }
 
   /// Initialize the router: core-animated-pages and listen for change events.
@@ -218,9 +214,13 @@ class WebRouter extends PolymerElement {
   }
 
   /// Plays the core-animated-pages animation (if required) and scrolls to hash.
+  /// Doesn't update active route, etc.
   void playAnimation() {
     // animate the transition if core-animated-pages are being used
     if (animated) {
+    	if (_coreAnimatedPages.selected == _activeRoute.path) {
+    		activeRoute.scrollToHash();
+    	}
       _coreAnimatedPages.selected = _activeRoute.path;
       // TODO(km): after animation finishes clear invisible routes & scroll to hash
     } else {

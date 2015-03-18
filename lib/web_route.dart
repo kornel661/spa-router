@@ -26,8 +26,6 @@ class WebRoute extends PolymerElement with Observable {
   @published String elem;
   /// If not empty the route redirects there.
   @published String redirect;
-  /// Is it an inline template?
-  @published bool template = false;
   /// Is the path a regular expression?
   @published bool regex = false;
   /// Is transition animation in progress?
@@ -85,7 +83,7 @@ class WebRoute extends PolymerElement with Observable {
 
   @override
   String toString() =>
-      "web-route (path: $path, imp: $impl, elem: $elem, template: $template, regex: $regex, redirect: $redirect, transitionAnimationInProgress: $transitionAnimationInProgress, active: $active, bindRouter: $bindRouter)";
+      "web-route (path: $path, imp: $impl, elem: $elem, regex: $regex, redirect: $redirect, transitionAnimationInProgress: $transitionAnimationInProgress, active: $active, bindRouter: $bindRouter)";
 
   /// Sets the content of the route.
   /// TODO

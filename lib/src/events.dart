@@ -2,7 +2,8 @@ library events;
 
 import 'dart:html';
 
-/// fireEvent(type, detail, node) fires a new CustomEvent(type, detail) on the node
+/// fireEvent(type, detail, node) fires a new CustomEvent(type, detail) on the node.
+/// Returns false if anyone called preventDefault in any of the handlers.
 ///
 /// listen with document.querySelector('node').addEventListener(type, function(event) {
 ///   event.detail; event.preventDefault();
