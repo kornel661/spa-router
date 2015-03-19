@@ -14,26 +14,31 @@ import 'package:web_router/src/events.dart';
 
 /// web-router is a router element.
 /// Example usage:
-/// 	<web-router [init="auto|manual"] [mode="hash|pushstate"] [trailingSlash="strict|ignore"] [shadow]></app-router>
-/// 	<web-router animated transitions="hero-transition cross-fade">
+///   <web-router
+///     [manualInit]
+///     [fullPaths]
+///     [relaxedSlash]
+///     [animated] [transitions="hero-transition cross-fade"]
+///     [bindRouter]>
+///   </app-router>
 @CustomTag('web-router')
 class WebRouter extends PolymerElement {
-
-  /// init="auto|manual"
-  /// If manual one has to initialize the router manually:
-  /// 	document.querySelector('app-router').initialize();
-  @published String init = "auto";
-  /// mode="hash|pushstate"
-  @published String mode = "hash";
-  /// trailingSlash="strict|ignore"
-  /// If ignore then '/home' matches '/home/' as well.
-  @published String trailingSlash = "strict";
+  /// If manualInit is set one has to initialize the router manually:
+  ///   document.querySelector('app-router').initialize();
+  @published bool manualInit = false;
+  /// Use full paths for routing (default behaviour is to use hashes).
+  @published bool fullPaths = false;
+  /// If relaxedSlash is set then trailing slashes are ignored during matching,
+  /// i.e., '/home' matches '/home/' as well.
+  @published bool relaxedSlash = false;
   /// Whether to use Polymer's core-animated-pages for transitions.
   @published bool animated = false;
   /// Which transitions of the core-animated-pages to use.
   /// E.g., transitions="hero-transition cross-fade"
+  /// This attribute is forwarded to core-animated-pages.
   @published String transitions = "";
-  @published bool bindRouter;
+  /// Whether to bind the router to the route's custom-element.
+  @published bool bindRouter = false;
 
   /// Is the router initilized already?
   bool _isInitialized = false;
@@ -69,7 +74,7 @@ class WebRouter extends PolymerElement {
   @override
   void domReady() {
     super.domReady();
-    if (init != "manual") {
+    if (!manualInit) {
       initialize();
     }
   }
@@ -157,8 +162,7 @@ class WebRouter extends PolymerElement {
   /// go(path, {replace}) - Navigate to the path. E.g.,
   ///   go('/home')
   void go(String path, {bool replace: false}) {
-    if (mode != "pushstate") {
-      // mode == hash
+    if (!fullPaths) {
       path = '#' + path;
     }
     if (replace) {
@@ -177,7 +181,8 @@ class WebRouter extends PolymerElement {
   /// Wired to PopStateEvents.
   void _update() {
     print("log: update");
-    RouteUri url = new RouteUri.parse(window.location.href, mode);
+
+    RouteUri url = new RouteUri.parse(window.location.href, fullPaths);
 
     // don't load a new route if only the hash fragment changed
     if (activeUri != null &&
@@ -185,26 +190,24 @@ class WebRouter extends PolymerElement {
         url.search == activeUri.search &&
         url.isHashPath == activeUri.isHashPath) {
       if (activeRoute != null) {
+        _activeUri = url;
         activeRoute.uri = url;
         if (url.hash != activeUri.hash) {
           activeRoute.scrollToHash();
         }
       }
-      _activeUri = url;
       return;
     }
-    _activeUri = url;
-
     // fire a state-change event on the web-router and return early if the user called event.preventDefault()
     Map<String, String> eventDetail = {'path': url.path};
     if (!fireEvent(WebEvent.stateChange, eventDetail, this)) {
       return;
     }
-
     // find the first matching route
     for (WebRoute route in routes) {
-      if (route.isMatch(url, trailingSlash != "ignore")) {
+      if (route.isMatch(url, !relaxedSlash)) {
         print("log: route matched");
+        _activeUri = url;
         route.activate(url);
         return;
       }
@@ -218,9 +221,9 @@ class WebRouter extends PolymerElement {
   void playAnimation() {
     // animate the transition if core-animated-pages are being used
     if (animated) {
-    	if (_coreAnimatedPages.selected == _activeRoute.path) {
-    		activeRoute.scrollToHash();
-    	}
+      if (_coreAnimatedPages.selected == _activeRoute.path) {
+        activeRoute.scrollToHash();
+      }
       _coreAnimatedPages.selected = _activeRoute.path;
       // TODO(km): after animation finishes clear invisible routes & scroll to hash
     } else {

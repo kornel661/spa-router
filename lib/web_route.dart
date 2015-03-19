@@ -13,9 +13,15 @@ import 'package:web_router/web_router.dart';
 import 'package:web_router/src/routeuri.dart';
 import 'package:web_router/src/events.dart';
 
-/// web-route is an element describing a route within a web-router element.
+/// <web-route> is an element describing a route within a web-router element.
 /// Some syntax:
-/// <web-route path="/path" [impl="/page/cust-elem.html"] [elem="cust-el"] [template] [regex] [bindRouter]></app-route>
+///   <web-route
+///     [path="/route/path"]
+///     [impl="/path/to/custom-element.html"]
+///     [elem="custom-element-name"]
+///     [redirect="/path/to/redirect/to"]
+///     [regex] [bindRouter]>
+///   </app-route>
 @CustomTag('web-route')
 class WebRoute extends PolymerElement with Observable {
   /// Path of the route.
@@ -28,12 +34,8 @@ class WebRoute extends PolymerElement with Observable {
   @published String redirect;
   /// Is the path a regular expression?
   @published bool regex = false;
-  /// Is transition animation in progress?
-  bool transitionAnimationInProgress = false;
-  /// Is the route active?
-  @published bool active = false;
-  /// Whether to bind the router to the element.
-  @published bool bindRouter;
+  /// Whether to bind the router to the route's custom-element.
+  @published bool bindRouter = false;
 
   /// Route's router. (Set by the router during initialization.)
   WebRouter router;
@@ -83,18 +85,12 @@ class WebRoute extends PolymerElement with Observable {
 
   @override
   String toString() =>
-      "web-route (path: $path, imp: $impl, elem: $elem, regex: $regex, redirect: $redirect, transitionAnimationInProgress: $transitionAnimationInProgress, active: $active, bindRouter: $bindRouter)";
+      "web-route (path: $path, imp: $impl, elem: $elem, regex: $regex, redirect: $redirect, bindRouter: $bindRouter)";
 
   /// Sets the content of the route.
   /// TODO
   void setContent(String content) {
     _contentElem.setInnerHtml(content, validator: _nodeValidator);
-  }
-
-  /// Returns the <content> element of the route.
-  /// TODO
-  ContentElement getContentElement() {
-    return _contentElem;
   }
 
   /// Clears route's content.
@@ -235,16 +231,13 @@ class WebRoute extends PolymerElement with Observable {
   }
 
   /// Returns model for the route's element (for binding).
-  Map<String, Object> get model {
-    Map<String, Object> model = new Map<String, Object>();
-    if (bindRouter != null || router.bindRouter != null) {
-      model['router'] = router;
-    }
+  Map<String, String> get model {
+    Map<String, String> model = new Map<String, String>();
     if (uri == null) {
       print("web-route: can't create model, _uri==null");
       return model;
     }
-    model['uri'] = uri;
+    model['uri'] = uri.toString();
     // regular expressions can't have path variables
     if (!regex) {
       // example urlPathSegments = ['', example', 'path']

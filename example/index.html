@@ -24,14 +24,21 @@
 		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 		<title>web-router examples</title>
-
-		<link rel="import" href="packages/paper_elements/paper_icon_button.html">
-
 		<link rel="import" href="packages/web_router/web_router.html">
 		<link rel="import" href="packages/web_router/web_route.html">
+
+		<link rel="import" href="src/window_location.html">
 	</head>
+
 	<body unresolved>
-		<p>Routing demo <paper-icon-button icon="favorite-outline" title=":-)"></paper-icon-button>:</p>
+		<h1>Routing demo:</h1>
+		<ul>
+			<li><a href="">reload</a></li>
+			<li><a href="#/">/</a></li>
+			<li><a href="#/test">/test</a></li>
+			<li><a href="#/garbage?arg1=val1&arg2=val2">garbage</a></li>
+			<li><a href="#/garbage?arg1=val1&arg2=val2#some_hash">garbage with hash</a></li>
+		</ul>
 		<web-router mode="hash">
 			<web-route path="/">
 				<template>
@@ -55,15 +62,15 @@
 		<web-router mode="hash">
 			<web-route path="/">
 				<template>
-					<p>Inline template!
-						<a href="#/test">test</a>
-					</p>
+					<p>Inline template! <a href="#/test">test</a></p>
 				</template>
 			</web-route>
 			<web-route path="/test">
 				<template>
 					<p>TEST <a href="#/">home</a></p>
 				</template>
+			</web-route>
+			<web-route path="**" elem="window-location">
 			</web-route>
 		</web-router>
 

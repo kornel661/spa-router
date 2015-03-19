@@ -1,5 +1,7 @@
 library routeUri;
 
+enum PathMode { Auto, Hash, FullPath }
+
 /// Class representing URIs hadled by routes.
 ///
 /// Example parse('http://domain.com/other/path?queryParam3=false#/example/path?queryParam1=true&queryParam2=example%20string#middle', 'auto')
@@ -30,7 +32,7 @@ class RouteUri {
     return '?' + uri.query;
   }
 
-  String toString() => uri.toString() + " isHashPath: ${isHashPath}";
+  String toString() => uri.toString();
 
   /// Map represenation of this RouteUri.
   Map<String, Object> toMap() {
@@ -58,11 +60,8 @@ class RouteUri {
   /// Note: The location must be a fully qualified URL with a protocol like 'http(s)://'
   RouteUri.parse(String uriIn, String mode) {
     uri = Uri.parse(uriIn);
-    isHashPath = (mode == "hash");
-
-    if (mode != "pushstate") {
-      // auto or hash
-
+    isHashPath = (mode != "pushstate");
+    if (isHashPath) {
       // check for a hash path
       if (uri.fragment.startsWith('/')) {
         // '#/'
