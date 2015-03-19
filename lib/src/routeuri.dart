@@ -1,54 +1,33 @@
 library routeUri;
 
-enum PathMode { Auto, Hash, FullPath }
-
 /// Class representing URIs hadled by routes.
 ///
-/// Example parse('http://domain.com/other/path?queryParam3=false#/example/path?queryParam1=true&queryParam2=example%20string#middle', 'auto')
+/// Example parse('http://domain.com/other/path?queryParam3=false#/example/path?queryParam1=true&queryParam2=example%20string#middle', false)
 /// gives:
 ///   path: '/example/path',
 ///   hash: '#middle'
 ///   search: '?queryParam1=true&queryParam2=example%20string',
 ///   isHashPath: true
 class RouteUri {
-  Uri uri;
+  /// hash for routing for this uri ('...#/...?...#XXX')
+  /// e.g. `#name`
+  String hash;
+  /// path for routing for this uri ('...#/XXX?...#...')
+  /// e.g. `/path`
+  String path;
+  /// query string for routing for this uri ('...#/...?XXX#...')
+  /// e.g. `?arg=val`
+  String search;
   /// Is it a 'hash' path?
   bool isHashPath = false;
+  @override
+  String toString() => "${path}${search}${hash}";
 
-  /// hash for routing for this uri ('...#/...?...#XXX')
-  String get hash {
-    if (uri.fragment.length == 0) return '';
-    return '#' + uri.fragment;
-  }
-
-  /// path for routing for this uri ('...#/XXX?...#...')
-  String get path {
-    return uri.path;
-  }
-
-  /// query string for routing for this uri ('...#/...?XXX#...')
-  String get search {
-    if (uri.query.length == 0) return '';
-    return '?' + uri.query;
-  }
-
-  String toString() => uri.toString();
-
-  /// Map represenation of this RouteUri.
-  Map<String, Object> toMap() {
-    Map<String, Object> map = new Map<String, Object>();
-    map['path'] = this.path;
-    map['hash'] = this.hash;
-    map['search'] = this.search;
-    map['isHashPath'] = this.isHashPath;
-    return map;
-  }
-
-  /// parse(location, mode) - Augment the native URL() constructor to get info about hash paths
-  ///  mode = "auto|hash|pushstate"
+  /// parse(location, fullPath) - parses given uri (location). If fullPath is
+  ///   false then only part after first '#' is taken into account.
   ///
   /// Example:
-  ///  parse('http://domain.com/other/path?queryParam3=false#/example/path?queryParam1=true&queryParam2=example%20string#middle', 'auto')
+  ///  parse('http://domain.com/other/path?queryParam3=false#/example/path?queryParam1=true&queryParam2=example%20string#middle', false)
   ///
   /// returns {
   ///   path: '/example/path',
@@ -56,67 +35,43 @@ class RouteUri {
   ///   search: '?queryParam1=true&queryParam2=example%20string',
   ///   isHashPath: true
   /// }
-  ///
-  /// Note: The location must be a fully qualified URL with a protocol like 'http(s)://'
-  RouteUri.parse(String uriIn, String mode) {
-    uri = Uri.parse(uriIn);
-    isHashPath = (mode != "pushstate");
-    if (isHashPath) {
-      // check for a hash path
-      if (uri.fragment.startsWith('/')) {
-        // '#/'
-        // hash path
-        isHashPath = true;
-        uri = _replacePathAndQuery(uri, uri.fragment);
-      } else if (uri.fragment.startsWith('!/')) {
-        // '#!/'
-        // hashbang path
-        isHashPath = true;
-        uri = _replacePathAndQuery(uri, uri.fragment.substring(1));
-      } else if (isHashPath) {
-        // still use the hash if mode="hash"
-        if (uri.fragment.length == 0) {
-          uri = uri.replace(path: '/', query: '');
-        } else {
-          uri = _replacePathAndQuery(uri, uri.fragment);
-        }
+  RouteUri.parse(String uri, [bool fullPath = false]) {
+    if (!fullPath) {
+    	isHashPath = true;
+      // we want to work with hash only
+      int i = uri.indexOf('#');
+      if (i == -1) {
+        uri = "";
+      } else {
+        uri = uri.substring(i + 1);
       }
-
-      if (isHashPath) {
-        uri = uri.replace(fragment: '');
-
-        // hash paths might have an additional hash in the hash path for scrolling to a specific part of the page #/hash/path#elementId
-        int secondHashIndex = uri.path.indexOf('#');
-        if (secondHashIndex != -1) {
-          uri = uri.replace(fragment: uri.path.substring(secondHashIndex));
-          uri = uri.replace(path: uri.path.substring(0, secondHashIndex));
-        }
-        // FIXME(km): hash is not working
-        // hash paths get the search from the hash if it exists
-        int searchIndex = uri.path.indexOf('?');
-        if (searchIndex != -1) {
-          uri = uri.replace(query: uri.path.substring(searchIndex));
-          uri = uri.replace(path: uri.path.substring(0, searchIndex));
-        }
+    }
+    if (uri == "") {
+    	uri = "/";
+    }
+    int qi = uri.indexOf('?');
+    if (qi == -1) {
+      search = "";
+      String pathHash = uri;
+      int hi = pathHash.indexOf('#');
+      if (hi == -1) {
+        path = pathHash;
+        hash = "";
+      } else {
+        path = pathHash.substring(0, hi);
+        hash = pathHash.substring(hi);
+      }
+    } else {
+      path = uri.substring(0, qi);
+      String queryHash = uri.substring(qi);
+      int hi = queryHash.indexOf('#');
+      if (hi == -1) {
+        search = queryHash;
+        hash = "";
+      } else {
+        search = queryHash.substring(0, hi);
+        hash = queryHash.substring(hi);
       }
     }
   }
-}
-
-/// Given a pathAndQuery string (e.g., '/a/b/c?test=ok) creates a new Uri with
-/// path and query fields of the uri replaced with the ones form the
-/// pathAndQuery string, eg.,
-///  path: /a/b/c
-///  query: test=ok
-///
-Uri _replacePathAndQuery(Uri uri, String pathAndQuery) {
-  String path = pathAndQuery;
-  String query = "";
-  int index = pathAndQuery.indexOf("?");
-  if (index != -1) {
-    path = pathAndQuery.substring(0, index); // get rid of query
-    query = pathAndQuery.substring(index + 1); // just the query
-  }
-  uri = uri.replace(path: path, query: query);
-  return uri;
 }
