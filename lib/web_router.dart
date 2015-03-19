@@ -161,6 +161,8 @@ class WebRouter extends PolymerElement {
 
   /// go(path, {replace}) - Navigate to the path. E.g.,
   ///   go('/home')
+  /// Uses window.history.pushState unless replace==true in which case
+  /// window.history.replaceState is used.
   void go(String path, {bool replace: false}) {
     if (!fullPaths) {
       path = '#' + path;
@@ -180,8 +182,6 @@ class WebRouter extends PolymerElement {
   /// Find the first <web-route> that matches the current URL and change the active route.
   /// Wired to PopStateEvents.
   void _update() {
-    print("log: update");
-
     RouteUri url = new RouteUri.parse(window.location.href, fullPaths);
 
     // don't load a new route if only the hash fragment changed
@@ -190,11 +190,11 @@ class WebRouter extends PolymerElement {
         url.search == activeUri.search &&
         url.isHashPath == activeUri.isHashPath) {
       if (activeRoute != null) {
-        _activeUri = url;
         activeRoute.uri = url;
         if (url.hash != activeUri.hash) {
           activeRoute.scrollToHash();
         }
+        _activeUri = url;
       }
       return;
     }
@@ -206,13 +206,11 @@ class WebRouter extends PolymerElement {
     // find the first matching route
     for (WebRoute route in routes) {
       if (route.isMatch(url, !relaxedSlash)) {
-        print("log: route matched");
         _activeUri = url;
         route.activate(url);
         return;
       }
     }
-    print("log: route not found");
     fireEvent(WebEvent.routeNotFound, eventDetail, this);
   }
 

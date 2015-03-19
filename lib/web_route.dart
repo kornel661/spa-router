@@ -6,7 +6,6 @@
 import 'package:polymer/polymer.dart';
 import 'package:core_elements/core_ajax_dart.dart';
 import 'dart:html';
-import 'dart:async';
 import 'package:template_binding/template_binding.dart';
 
 import 'package:web_router/web_router.dart';
@@ -70,7 +69,6 @@ class WebRoute extends PolymerElement with Observable {
     //elem = children.first;
     if (elem is TemplateElement) {
       _templateElem = elem;
-      //print("ready: path ${path}!\n");
     }
   }
 
@@ -96,7 +94,6 @@ class WebRoute extends PolymerElement with Observable {
   /// Clears route's content.
   void clearContent() {
     //_uri = null;
-    print("log: clearing content");
     List<Element> newChildren = [];
     if (_templateElem != null) {
       newChildren.add(_templateElem);
@@ -194,7 +191,6 @@ class WebRoute extends PolymerElement with Observable {
     } else {
       // TODO(km): arrange to clear the previous route when animation ends
     }
-    print("log: route: about to create an element");
     if (impl != null) {
       // discern the name of the element to create
       if (elem == null) {
@@ -212,12 +208,9 @@ class WebRoute extends PolymerElement with Observable {
       }
     } else if (elem != null) {
       // pre-loaded custom element
-      print("log: creating pre-loaded element");
       _createCustomElem();
     } else if (_templateElem != null) {
       // inline template
-      print(
-          "log: instatiating a template: ${_templateElem.innerHtml.substring(0,10)}");
       append(templateBind(_templateElem).createInstance(model));
     }
     router.playAnimation();
@@ -292,7 +285,8 @@ class WebRoute extends PolymerElement with Observable {
       }
     }
     // TODO(km): is it working/necessary? or maybe scheduleMicrotask()?
-    new Future(delayedScrollToHash);
+    //new Future(delayedScrollToHash);
+    delayedScrollToHash();
   }
 }
 
