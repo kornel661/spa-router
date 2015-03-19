@@ -19,7 +19,8 @@ import 'package:web_router/src/events.dart';
 ///     [fullPaths]
 ///     [relaxedSlash]
 ///     [animated] [transitions="hero-transition cross-fade"]
-///     [bindRouter]>
+///     [bindRouter]
+///     [noScroll]>
 ///   </app-router>
 @CustomTag('web-router')
 class WebRouter extends PolymerElement {
@@ -39,6 +40,8 @@ class WebRouter extends PolymerElement {
   @published String transitions = "";
   /// Whether to bind the router to the route's custom-element.
   @published bool bindRouter = false;
+  /// Don't use scrolling to hash. (Equivalent to setting noScroll on all routes.)
+  @published bool noScroll = false;
 
   /// Is the router initilized already?
   bool _isInitialized = false;
@@ -183,7 +186,6 @@ class WebRouter extends PolymerElement {
   /// Wired to PopStateEvents.
   void _update() {
     RouteUri url = new RouteUri.parse(window.location.href, fullPaths);
-
     // don't load a new route if only the hash fragment changed
     if (activeUri != null &&
         url.path == activeUri.path &&
@@ -206,7 +208,8 @@ class WebRouter extends PolymerElement {
     // find the first matching route
     for (WebRoute route in routes) {
       if (route.isMatch(url, !relaxedSlash)) {
-        _activeUri = url;
+        print("found route");
+      	_activeUri = url;
         route.activate(url);
         return;
       }

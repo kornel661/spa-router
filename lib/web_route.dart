@@ -14,27 +14,38 @@ import 'package:web_router/src/events.dart';
 
 /// <web-route> is an element describing a route within a web-router element.
 /// Some syntax:
+/// ```
 ///   <web-route
 ///     [path="/route/path"]
 ///     [impl="/path/to/custom-element.html"]
 ///     [elem="custom-element-name"]
 ///     [redirect="/path/to/redirect/to"]
-///     [regex] [bindRouter]>
+///     [regex] [bindRouter]
+///     [uriParam="url"]
+///     [noScroll]>
 ///   </app-route>
+/// ```
+/// String attributes default to empty string with notable exception path="/"
+/// and boolean attributes default to false.
 @CustomTag('web-route')
 class WebRoute extends PolymerElement with Observable {
   /// Path of the route.
   @published String path = "/";
   /// Path to the implementation of the element to be shown.
-  @published String impl;
+  @published String impl = "";
   /// Name of the element to be shown.
-  @published String elem;
+  @published String elem = "";
   /// If not empty the route redirects there.
-  @published String redirect;
+  @published String redirect = "";
   /// Is the path a regular expression?
   @published bool regex = false;
   /// Whether to bind the router to the route's custom-element.
   @published bool bindRouter = false;
+  /// If uriParam="nameA" is set then nameA parameter of the route's element
+  /// will be set to the route's URI.
+  @published String uriParam = "";
+  /// Don't use scrolling to hash.
+  @published bool noScroll = false;
 
   /// Route's router. (Set by the router during initialization.)
   WebRouter router;
@@ -168,7 +179,7 @@ class WebRoute extends PolymerElement with Observable {
 
   /// Activate the route
   void activate(RouteUri url) {
-    if (redirect != null) {
+    if (redirect != null && redirect != "") {
       router.go(redirect, replace: true);
       return;
     }
@@ -191,9 +202,9 @@ class WebRoute extends PolymerElement with Observable {
     } else {
       // TODO(km): arrange to clear the previous route when animation ends
     }
-    if (impl != null) {
+    if (impl != null && impl != "") {
       // discern the name of the element to create
-      if (elem == null) {
+      if (elem == null || elem == "") {
         elem =
             impl.split('/').last.replaceAll('.html', '').replaceAll('_', '-');
       }
@@ -206,7 +217,7 @@ class WebRoute extends PolymerElement with Observable {
         // definition is loaded already
         _createCustomElem();
       }
-    } else if (elem != null) {
+    } else if (elem != null && elem != "") {
       // pre-loaded custom element
       _createCustomElem();
     } else if (_templateElem != null) {
@@ -227,50 +238,48 @@ class WebRoute extends PolymerElement with Observable {
   Map<String, String> get model {
     Map<String, String> model = new Map<String, String>();
     if (uri == null) {
-      print("web-route: can't create model, _uri==null");
+      window.console.error("web-route: can't create model, _uri==null.");
       return model;
     }
-    model['uri'] = uri.toString();
+    if (uriParam != null && uriParam != "") {
+      model[uriParam] = uri.toString();
+    }
     // regular expressions can't have path variables
     if (!regex) {
       // example urlPathSegments = ['', example', 'path']
-      List<String> urlPathSegments = uri.path.split('/');
-
-      // example routePathSegments = ['', 'example', '*']
-      List<String> routePathSegments = path.split('/');
-
+      List<String> uriSegments = uri.path.split('/');
+      List<String> routeSegments = path.split('/');
       // get path variables
       // urlPath '/customer/123'
       // routePath '/customer/:id'
       // parses id = '123'
-      for (int index = 0; index < routePathSegments.length; index++) {
-        String routeSegment = routePathSegments[index];
-        if (routeSegment.startsWith(':')) {
-          model[routeSegment.substring(1)] = urlPathSegments[index];
+      for (int i = 0; i < routeSegments.length; i++) {
+        String rSegment = routeSegments[i];
+        if (rSegment.startsWith(':')) {
+          model[rSegment.substring(1)] = Uri.decodeComponent(uriSegments[i]);
         }
       }
     }
-    List<String> queryParameters = [];
-    if (uri.search.length > 0) {
-      queryParameters = uri.search.substring(1).split('&');
-    }
-    // split() on an empty string returns ['']
-    if (queryParameters.length == 1 && queryParameters[0] == '') {
-      queryParameters = [];
-    }
-    for (int i = 0; i < queryParameters.length; i++) {
-      List<String> queryParameterParts = queryParameters[i].split('=');
-      if (queryParameterParts.length > 1) {
-        model[queryParameterParts[0]] =
-            queryParameterParts.sublist(1).join('=');
+    // extract query parameters
+    List<String> qParams = [];
+    if (uri.search.length > 1) {
+      qParams = uri.search.substring(1).split('&');
+      for (String qParam in qParams) {
+        List<String> qParamParts = qParam.split('=');
+        if (qParamParts.length > 1) {
+          model[qParamParts[0]] =
+              Uri.decodeQueryComponent(qParamParts.sublist(1).join('='));
+        }
       }
     }
     return model;
   }
 
   /// Scrolls to the element with id="hash" or name="hash".
-  /// TODO(km): test & check
   void scrollToHash() {
+    if (noScroll || router.noScroll) {
+      return;
+    }
     String hash = uri.hash;
     if (hash == null || hash == '') return;
 
