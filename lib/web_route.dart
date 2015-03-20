@@ -20,7 +20,7 @@ import 'package:web_router/src/events.dart';
 /// ```
 ///   <web-route
 ///     [path="/route/path"]
-///     [impl="/path/to/custom-element.html"]
+///     [impl="/path/to/custom_element.html"]
 ///     [elem="custom-element-name"]
 ///     [redirect="/path/to/redirect/to"]
 ///     [regex] [bindRouter]
@@ -31,6 +31,17 @@ import 'package:web_router/src/events.dart';
 /// ```
 /// String attributes default to empty string with notable exceptions path="/"
 /// and queryParams=null. Boolean attributes default to false.
+///
+/// * If neither [impl] nor [elem] are set then route instantiates its child
+///   template (if it exists) on activation.
+/// * If [impl] is set, e.g.,
+///     impl="/path/to/custom_element.html"
+///   then "/path/to/custom_element.html" is fetched and a new element is created.
+///   The element's name is `custom-element` (last segment of the uri without
+///   `.html` and with undercores replaced by dashes or, if [elem] is set, it is
+///   just [elem].
+/// * If just [elem] is set (e.g., elem="my-element") then, upon route's
+///   activation, new [elem] element is created (e.g., `<my-element>`).
 @CustomTag('web-route')
 class WebRoute extends PolymerElement with Observable {
   /// Path of the route.
@@ -65,7 +76,8 @@ class WebRoute extends PolymerElement with Observable {
   /// field `router` of type WebRouter. The field will be set to route's router
   /// when the element is instantiated.
   @published bool bindRouter = false;
-  /// The name of the attribute to which route's uri will be bound.
+  /// The name of the attribute to which route's uri will be bound. Doesn't
+  /// have effect for templates.
   ///
   /// If uriAttr="nameA" is set then nameA attribute of the route's element
   /// will be set to the route's URI.
@@ -257,7 +269,7 @@ class WebRoute extends PolymerElement with Observable {
   void _createCustomElem() {
     Element customElem = document.createElement(elem);
     customElem.attributes.addAll(model);
-    if (bindRouter) {
+    if (bindRouter || router.bindRouter) {
       // bind router to customElement.router (if it exists)
       try {
         (customElem as dynamic).router = router;
