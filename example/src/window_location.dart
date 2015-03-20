@@ -2,6 +2,8 @@
  *  Web Router - dart
  *  Copyright (c) 2015 Kornel Maczyński, pjv, Erik Ringsmuth. For other contributors, see Github.
  */
+@HtmlImport('window_location.html')
+library window_location;
 
 import 'package:polymer/polymer.dart';
 import 'dart:html';
@@ -26,6 +28,6 @@ class WindowLocation extends PolymerElement {
   }
 
   void go() {
-  	router.go("/");
+    router.go("/");
   }
 }

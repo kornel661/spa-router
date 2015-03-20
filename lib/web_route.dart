@@ -2,6 +2,8 @@
  *  Web Router - dart
  *  Copyright (c) 2015 Kornel Maczyński, pjv, Erik Ringsmuth. For other contributors, see Github.
  */
+@HtmlImport('package:/web_router/web_route.html')
+library web_route;
 
 import 'package:polymer/polymer.dart';
 import 'package:core_elements/core_ajax_dart.dart';

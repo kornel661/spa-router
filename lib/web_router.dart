@@ -2,6 +2,8 @@
  *  Web Router - dart
  *  Copyright (c) 2015 Kornel Maczyński, pjv, Erik Ringsmuth. For other contributors, see Github.
  */
+@HtmlImport('package:/web_router/web_router.html')
+library web_router;
 
 import 'package:polymer/polymer.dart';
 import 'dart:html';
@@ -210,7 +212,7 @@ class WebRouter extends PolymerElement {
     // find the first matching route
     for (WebRoute route in routes) {
       if (route.isMatch(url, !relaxedSlash)) {
-      	_activeUri = url;
+        _activeUri = url;
         route.activate(url);
         return;
       }
