@@ -34,20 +34,38 @@ import 'package:web_router/src/events.dart';
 @CustomTag('web-route')
 class WebRoute extends PolymerElement with Observable {
   /// Path of the route.
+  ///
+  /// Unless [regex] is set:
+  /// * Path has segments separated by slashes `/`.
+  /// * Segment starting with a colon `:` matches a single segment and adds a
+  ///   binding, e.g., `/:name/edit` matches uri `/Joe/edit` and adds binding
+  ///   name=Joe.
+  /// * `*` matches a single segment (doesn't add any bindings).
+  /// * Path may end with `**` segment which mathes any number of segments.
+  /// * The query string (starting at `?`) and hash (starting at `#`) of the uri
+  ///   are discraded during matching.
+  /// TODO(km): add handling of `**`
   @published String path = "/";
-  /// Path to the implementation of the element to be shown.
+  /// Address of the implementation of the element to be shown.
+  ///
+  /// The implementation will be fetched when the route is activated for the
+  /// first time. Probably doesn't work with Polymer.dart see:
   @published String impl = "";
   /// Name of the element to be shown.
+  /// It's called the custom element or route's element throughout this documentation.
   @published String elem = "";
   /// If not empty the route redirects there.
   @published String redirect = "";
   /// Is the path a regular expression?
   @published bool regex = false;
   /// Whether to bind the router to the route's CustomElement.
+  ///
   /// The <custom-element> must be supported by Dart class with public non-final
   /// field `router` of type WebRouter. The field will be set to route's router
   /// when the element is instantiated.
   @published bool bindRouter = false;
+  /// The name of the attribute to which route's uri will be bound.
+  ///
   /// If uriAttr="nameA" is set then nameA attribute of the route's element
   /// will be set to the route's URI.
   @published String uriAttr = "";
