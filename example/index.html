@@ -17,9 +17,11 @@
 		<li><a href="">reload</a></li>
 		<li><a href="#/">/</a></li>
 		<li><a href="#/test">/test</a></li>
+		<li><a href="#/click/you">/click/you</a></li>
 		<li><a href="#/garbage?arg1=val1&arg2=val%202&arg3=some val">garbage</a></li>
 		<li><a href="#/garbage?arg1=val1&arg2=val%202&arg3=some val#someHash">garbage with hash</a></li>
 	</ul>
+	<h2>Router1</h2>
 	<web-router noScroll transitions="hero-transition cross-fade">
 		<web-route path="/">
 			<template>
@@ -34,14 +36,15 @@
 				<p>TEST <a href="#/">home</a></p>
 			</template>
 		</web-route>
-		<web-route path="**" elem="window-location" queryParams="arg1 arg3" bindRouter>
-		<web-route path="/start" import="/pages/home-page.html"></web-route>
-		<web-route path="/demo/:pathArg1" import="/pages/demo-page.html"></web-route>
-		<web-route path="/notes" import="/pages/notes-page.html"></web-route>
-		<web-route path="*" import="/pages/not-found-page.html"></web-route>
+		<web-route path="/garbage" elem="window-location" queryParams="arg1 arg3" bindRouter></web-route>
+		<web-route path="**" uriAttr="url">
+			<template>
+				Unknown path: {{url}}
+			</template>
+		</web-route>
 	</web-router>
-
-	<web-router mode="hash">
+	<h2>Router2</h2>
+	<web-router>
 		<web-route path="/">
 			<template>
 				<p>Inline template! <a href="#/test">test</a></p>
@@ -52,8 +55,8 @@
 				<p>TEST <a href="#/">home</a></p>
 			</template>
 		</web-route>
-		<web-route path="**" elem="window-location">
-		</web-route>
+		<web-route path="/click/:name" impl="src/click_me.html"></web-route>
+		<web-route path="**" elem="window-location"></web-route>
 	</web-router>
 
 	<script type="application/dart">

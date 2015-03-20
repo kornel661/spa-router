@@ -1,0 +1,10 @@
+<script>
+var proto = Object.create(HTMLElement.prototype);
+proto.createdCallback = function() {
+	this.innerHTML = "Click me!<br>";
+  this.addEventListener('click', function(e) {
+  	this.innerHTML = "Thanks, " + this.getAttribute("name") + "!";
+  });
+};
+var clickMe = document.registerElement('click-me', {prototype: proto});
+</script>

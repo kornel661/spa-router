@@ -8,7 +8,7 @@ library web_route;
 import 'package:polymer/polymer.dart';
 import 'package:core_elements/core_ajax_dart.dart';
 import 'dart:html';
-//import 'dart:mirrors';
+import 'dart:async';
 import 'package:template_binding/template_binding.dart';
 
 import 'package:web_router/web_router.dart';
@@ -61,6 +61,8 @@ class WebRoute extends PolymerElement with Observable {
 
   /// Route's router. (Set by the router during initialization.)
   WebRouter router;
+  /// Route's current uri.
+  RouteUri uri;
 
   ContentElement _contentElem;
   TemplateElement _templateElem;
@@ -68,8 +70,6 @@ class WebRoute extends PolymerElement with Observable {
   CoreAjax _ajax;
   /// Was the _ajax.go() executed?
   bool _ajaxLoaded = false;
-  /// Route's current uri.
-  RouteUri uri;
 
   @override
   WebRoute.created() : super.created();
@@ -101,18 +101,13 @@ class WebRoute extends PolymerElement with Observable {
       router.routes.remove(this);
       router = null;
     }
+    clearContent();
     super.remove();
   }
 
   @override
   String toString() =>
       "web-route (path: $path, imp: $impl, elem: $elem, regex: $regex, redirect: $redirect, bindRouter: $bindRouter)";
-
-  /// Sets the content of the route.
-  /// TODO
-  void setContent(String content) {
-    _contentElem.setInnerHtml(content, validator: _nodeValidator);
-  }
 
   /// Clears route's content.
   void clearContent() {
@@ -313,7 +308,7 @@ class WebRoute extends PolymerElement with Observable {
     String hash = uri.hash;
     if (hash == null || hash == '') return;
 
-    void delayedScrollToHash() {
+    void delayedScroll() {
       Element hashElement = document.querySelector('html /deep/ ' + hash);
       if (hashElement == null) {
         hashElement = document
@@ -323,9 +318,8 @@ class WebRoute extends PolymerElement with Observable {
         hashElement.scrollIntoView(ScrollAlignment.TOP);
       }
     }
-    // TODO(km): is it working/necessary? or maybe scheduleMicrotask()?
-    //new Future(delayedScrollToHash);
-    delayedScrollToHash();
+    // TODO(km): is it working? or maybe scheduleMicrotask()?
+    new Future(delayedScroll);
   }
 }
 
