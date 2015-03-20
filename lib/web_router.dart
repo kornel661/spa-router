@@ -13,7 +13,7 @@ import 'package:web_router/src/routeuri.dart';
 import 'package:web_router/src/events.dart';
 
 /// web-router is a router element.
-/// Example usage:
+/// Example usage (square brackets indicate optional attributes):
 ///   <web-router
 ///     [manualInit]
 ///     [fullPaths]
@@ -38,7 +38,7 @@ class WebRouter extends PolymerElement {
   /// E.g., transitions="hero-transition cross-fade"
   /// This attribute is forwarded to core-animated-pages.
   @published String transitions = "";
-  /// Whether to bind the router to the route's custom-element.
+  /// Whether to bind the router to the route's CustomElement.
   /// (Equivalent to setting bindRouter on all routes.)
   @published bool bindRouter = false;
   /// Don't use scrolling to hash.

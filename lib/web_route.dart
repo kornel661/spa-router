@@ -6,6 +6,7 @@
 import 'package:polymer/polymer.dart';
 import 'package:core_elements/core_ajax_dart.dart';
 import 'dart:html';
+//import 'dart:mirrors';
 import 'package:template_binding/template_binding.dart';
 
 import 'package:web_router/web_router.dart';
@@ -13,7 +14,7 @@ import 'package:web_router/src/routeuri.dart';
 import 'package:web_router/src/events.dart';
 
 /// <web-route> is an element describing a route within a web-router element.
-/// Some syntax:
+/// Some syntax (square brackets indicate optional attributes):
 /// ```
 ///   <web-route
 ///     [path="/route/path"]
@@ -21,12 +22,13 @@ import 'package:web_router/src/events.dart';
 ///     [elem="custom-element-name"]
 ///     [redirect="/path/to/redirect/to"]
 ///     [regex] [bindRouter]
-///     [uriParam="url"]
-///     [noScroll]>
+///     [uriAttr="url"]
+///     [noScroll]
+///     [queryParams="param1 param2"]>
 ///   </app-route>
 /// ```
-/// String attributes default to empty string with notable exception path="/"
-/// and boolean attributes default to false.
+/// String attributes default to empty string with notable exceptions path="/"
+/// and queryParams=null. Boolean attributes default to false.
 @CustomTag('web-route')
 class WebRoute extends PolymerElement with Observable {
   /// Path of the route.
@@ -39,11 +41,14 @@ class WebRoute extends PolymerElement with Observable {
   @published String redirect = "";
   /// Is the path a regular expression?
   @published bool regex = false;
-  /// Whether to bind the router to the route's custom-element.
+  /// Whether to bind the router to the route's CustomElement.
+  /// The <custom-element> must be supported by Dart class with public non-final
+  /// field `router` of type WebRouter. The field will be set to route's router
+  /// when the element is instantiated.
   @published bool bindRouter = false;
-  /// If uriParam="nameA" is set then nameA parameter of the route's element
+  /// If uriAttr="nameA" is set then nameA attribute of the route's element
   /// will be set to the route's URI.
-  @published String uriParam = "";
+  @published String uriAttr = "";
   /// Don't use scrolling to hash.
   @published bool noScroll = false;
   /// If set it specifies a space-separated list of query parameters, e.g.,
@@ -236,6 +241,17 @@ class WebRoute extends PolymerElement with Observable {
   void _createCustomElem() {
     Element customElem = document.createElement(elem);
     customElem.attributes.addAll(model);
+    if (bindRouter) {
+      // bind router to customElement.router (if it exists)
+      try {
+        (customElem as dynamic).router = router;
+      } catch (e) {
+        window.console.error("""web-route: error binding router
+           (if bindRouter is enabled the route's element must be supported by
+           Dart class with public non-final field `router` of type WebRouter):
+           ${e}""");
+      }
+    }
     append(customElem);
   }
 
@@ -246,8 +262,8 @@ class WebRoute extends PolymerElement with Observable {
       window.console.error("web-route: can't create model, _uri==null.");
       return model;
     }
-    if (uriParam != null && uriParam != "") {
-      model[uriParam] = uri.toString();
+    if (uriAttr != null && uriAttr != "") {
+      model[uriAttr] = uri.toString();
     }
     // regular expressions can't have path variables
     if (!regex) {
@@ -272,10 +288,10 @@ class WebRoute extends PolymerElement with Observable {
       for (String qParam in qParams) {
         List<String> qParamParts = qParam.split('=');
         if (qParamParts.length > 1) {
-        	List<String> allowedParams;
-        	if (this.queryParams != null) {
-        		allowedParams = queryParams.split(' ');
-        	}
+          List<String> allowedParams;
+          if (this.queryParams != null) {
+            allowedParams = queryParams.split(' ');
+          }
           if (this.queryParams == null ||
               allowedParams.contains(qParamParts[0])) {
             model[qParamParts[0]] =

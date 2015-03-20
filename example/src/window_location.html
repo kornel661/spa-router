@@ -7,12 +7,15 @@
 
 <polymer-element name="window-location">
 	<template>
-		The location is:
+		The location (at the time of instantiation):
 		<content></content><br>
 		arg1: {{arg1}}<br>
 		arg2: {{arg2}}<br>
 		arg3: {{arg3}}<br>
 		show: {{!arg2.isEmpty}}<br>
+		<template if="{{router != null}}">
+			<a on-click="{{go}}">GO! (click me to go home)</a>
+		</template>
 		<template if="{{!arg2.isEmpty}}">
 			<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 			<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
