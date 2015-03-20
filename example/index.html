@@ -34,6 +34,7 @@
 				<p>TEST <a href="#/">home</a></p>
 			</template>
 		</web-route>
+		<web-route path="**" elem="window-location" queryParams="arg1 arg3">
 		<web-route path="/start" import="/pages/home-page.html"></web-route>
 		<web-route path="/demo/:pathArg1" import="/pages/demo-page.html"></web-route>
 		<web-route path="/notes" import="/pages/notes-page.html"></web-route>

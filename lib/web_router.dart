@@ -39,8 +39,10 @@ class WebRouter extends PolymerElement {
   /// This attribute is forwarded to core-animated-pages.
   @published String transitions = "";
   /// Whether to bind the router to the route's custom-element.
+  /// (Equivalent to setting bindRouter on all routes.)
   @published bool bindRouter = false;
-  /// Don't use scrolling to hash. (Equivalent to setting noScroll on all routes.)
+  /// Don't use scrolling to hash.
+  /// (Equivalent to setting noScroll on all routes.)
   @published bool noScroll = false;
 
   /// Is the router initilized already?
@@ -208,7 +210,6 @@ class WebRouter extends PolymerElement {
     // find the first matching route
     for (WebRoute route in routes) {
       if (route.isMatch(url, !relaxedSlash)) {
-        print("found route");
       	_activeUri = url;
         route.activate(url);
         return;

@@ -12,11 +12,14 @@
 		arg1: {{arg1}}<br>
 		arg2: {{arg2}}<br>
 		arg3: {{arg3}}<br>
-		<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
-		<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
-		<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
-		<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
-		<a id="someHash">someHash</a><br><br>
+		show: {{!arg2.isEmpty}}<br>
+		<template if="{{!arg2.isEmpty}}">
+			<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+			<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+			<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+			<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+			<a id="someHash">someHash</a><br><br>
+		</template>
 	</template>
 	<script type="application/dart" src="window_location.dart"></script>
 </polymer-element>

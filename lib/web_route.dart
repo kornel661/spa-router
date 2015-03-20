@@ -46,6 +46,11 @@ class WebRoute extends PolymerElement with Observable {
   @published String uriParam = "";
   /// Don't use scrolling to hash.
   @published bool noScroll = false;
+  /// If set it specifies a space-separated list of query parameters, e.g.,
+  ///   `param1 param2` for `?param1=val1&param2=val...`
+  /// that will be forwarded (as attributes) to the route's element.
+  /// If not set then all parameters are forwarded.
+  @published String queryParams = null;
 
   /// Route's router. (Set by the router during initialization.)
   WebRouter router;
@@ -267,8 +272,15 @@ class WebRoute extends PolymerElement with Observable {
       for (String qParam in qParams) {
         List<String> qParamParts = qParam.split('=');
         if (qParamParts.length > 1) {
-          model[qParamParts[0]] =
-              Uri.decodeQueryComponent(qParamParts.sublist(1).join('='));
+        	List<String> allowedParams;
+        	if (this.queryParams != null) {
+        		allowedParams = queryParams.split(' ');
+        	}
+          if (this.queryParams == null ||
+              allowedParams.contains(qParamParts[0])) {
+            model[qParamParts[0]] =
+                Uri.decodeQueryComponent(qParamParts.sublist(1).join('='));
+          }
         }
       }
     }

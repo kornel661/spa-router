@@ -8,11 +8,11 @@ import 'dart:html';
 
 @CustomTag('window-location')
 class WindowLocation extends PolymerElement {
-	@published String arg1;
-	@published String arg2;
-	@published String arg3;
+  @published String arg1 = "";
+  @published String arg2 = "";
+  @published String arg3 = "";
 
-	@override
+  @override
   WindowLocation.created() : super.created();
 
   @override
