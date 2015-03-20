@@ -42,9 +42,10 @@ class WebRoute extends PolymerElement with Observable {
   ///   name=Joe.
   /// * `*` matches a single segment (doesn't add any bindings).
   /// * Path may end with `**` segment which mathes any number of segments.
+  /// * All other segments must match literally.
   /// * The query string (starting at `?`) and hash (starting at `#`) of the uri
-  ///   are discraded during matching.
-  /// TODO(km): add handling of `**`
+  ///   are discraded for the purpose of matching.
+  // TODO(km): add handling of `**`
   @published String path = "/";
   /// Address of the implementation of the element to be shown.
   ///
