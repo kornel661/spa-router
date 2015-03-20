@@ -27,7 +27,7 @@ import 'package:web_router/src/events.dart';
 ///     [uriAttr="url"]
 ///     [noScroll]
 ///     [queryParams="param1 param2"]>
-///   </app-route>
+///   </web-route>
 /// ```
 /// String attributes default to empty string with notable exceptions path="/"
 /// and queryParams=null. Boolean attributes default to false.
@@ -50,18 +50,21 @@ class WebRoute extends PolymerElement with Observable {
   /// * Path has segments separated by slashes `/`.
   /// * Segment starting with a colon `:` matches a single segment and adds a
   ///   binding, e.g., `/:name/edit` matches uri `/Joe/edit` and adds binding
-  ///   name=Joe.
+  ///   name=Joe if route's element is a template or sets `name` attribute of
+  ///   the route's element to `Joe` otherwise.
   /// * `*` matches a single segment (doesn't add any bindings).
   /// * Path may end with `**` segment which mathes any number of segments.
   /// * All other segments must match literally.
   /// * The query string (starting at `?`) and hash (starting at `#`) of the uri
-  ///   are discraded for the purpose of matching.
+  ///   are discraded for the purpose of matching. Query adds bindings, hash
+  ///   controls scrolling by default.
   // TODO(km): add handling of `**`
   @published String path = "/";
   /// Address of the implementation of the element to be shown.
   ///
   /// The implementation will be fetched when the route is activated for the
   /// first time. Probably doesn't work with Polymer.dart see:
+  ///   https://code.google.com/p/dart/issues/detail?id=17873
   @published String impl = "";
   /// Name of the element to be shown.
   /// It's called the custom element or route's element throughout this documentation.
@@ -82,7 +85,7 @@ class WebRoute extends PolymerElement with Observable {
   /// If uriAttr="nameA" is set then nameA attribute of the route's element
   /// will be set to the route's URI.
   @published String uriAttr = "";
-  /// Don't use scrolling to hash.
+  /// Don't scroll to hash.
   @published bool noScroll = false;
   /// If set it specifies a space-separated list of query parameters, e.g.,
   ///   `param1 param2` for `?param1=val1&param2=val...`

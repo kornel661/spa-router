@@ -23,11 +23,13 @@ import 'package:web_router/src/events.dart';
 ///     [animated] [transitions="hero-transition cross-fade"]
 ///     [bindRouter]
 ///     [noScroll]>
-///   </app-router>
+///       <web-route ...></web-route>
+///       ...
+///   </web-router>
 @CustomTag('web-router')
 class WebRouter extends PolymerElement {
   /// If manualInit is set one has to initialize the router manually:
-  ///   document.querySelector('app-router').initialize();
+  ///   document.querySelector('web-router').initialize();
   @published bool manualInit = false;
   /// Use full paths for routing (default behaviour is to use hashes).
   @published bool fullPaths = false;
@@ -43,7 +45,7 @@ class WebRouter extends PolymerElement {
   /// Whether to bind the router to the route's CustomElement.
   /// (Equivalent to setting bindRouter on all routes.)
   @published bool bindRouter = false;
-  /// Don't use scrolling to hash.
+  /// Don't scroll to hash.
   /// (Equivalent to setting noScroll on all routes.)
   @published bool noScroll = false;
 
@@ -117,7 +119,7 @@ class WebRouter extends PolymerElement {
       route.router = this;
     }
 
-    // <app-router core-animated-pages transitions="hero-transition cross-fade">
+    // <web-router core-animated-pages transitions="hero-transition cross-fade">
     if (animated) {
       // use shadow DOM to wrap the <web-route> elements in a <core-animated-pages> element
       // <web-router>
@@ -141,7 +143,7 @@ class WebRouter extends PolymerElement {
       // toggle the selected page using selected="path" instead of selected="integer"
       _coreAnimatedPages.setAttribute('valueattr', 'path');
 
-      // pass the transitions attribute from <app-router core-animated-pages transitions="hero-transition cross-fade">
+      // pass the transitions attribute from <web-router core-animated-pages transitions="hero-transition cross-fade">
       // to <core-animated-pages transitions="hero-transition cross-fade">
       _coreAnimatedPages.setAttribute('transitions', transitions);
 
