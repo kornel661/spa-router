@@ -22,7 +22,8 @@ import 'package:web_router/src/events.dart';
 ///     [relaxedSlash]
 ///     [animated] [transitions="hero-transition cross-fade"]
 ///     [bindRouter]
-///     [noScroll]>
+///     [noScroll]
+///     [prefix="/prefix/path"]>
 ///       <web-route ...></web-route>
 ///       ...
 ///   </web-router>
@@ -48,6 +49,8 @@ class WebRouter extends PolymerElement {
   /// Don't scroll to hash.
   /// (Equivalent to setting noScroll on all routes.)
   @published bool noScroll = false;
+  /// Prefix added to all child routes' paths.
+  @published String prefix = "";
 
   /// Is the router initilized already?
   bool _isInitialized = false;
@@ -101,10 +104,16 @@ class WebRouter extends PolymerElement {
       _coreAnimatedPages.append(node);
     }
     if (node is WebRoute) {
-      node.router = this;
+      _prepareRoute(node);
       routes.add(node);
     }
     return node;
+  }
+
+  /// Sets route.router to this and add prefix to route.path.
+  _prepareRoute(WebRoute route) {
+    route.router = this;
+    route.path = prefix + route.path;
   }
 
   /// Initialize the router: core-animated-pages and listen for change events.
@@ -116,7 +125,7 @@ class WebRouter extends PolymerElement {
     //_activeUri = new RouteUri.parse(window.location.href, mode);
     routes = this.querySelectorAll("web-route") as List<WebRoute>;
     for (WebRoute route in routes) {
-      route.router = this;
+      _prepareRoute(route);
     }
 
     // <web-router core-animated-pages transitions="hero-transition cross-fade">

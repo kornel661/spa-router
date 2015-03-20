@@ -44,7 +44,7 @@ import 'package:web_router/src/events.dart';
 ///   activation, new [elem] element is created (e.g., `<my-element>`).
 @CustomTag('web-route')
 class WebRoute extends PolymerElement with Observable {
-  /// Path of the route.
+  /// Path of the route. If parent router's prefix is set it is added to the path.
   ///
   /// Unless [regex] is set:
   /// * Path has segments separated by slashes `/`.
@@ -133,6 +133,7 @@ class WebRoute extends PolymerElement with Observable {
   void remove() {
     if (router != null) {
       router.routes.remove(this);
+      path = path.substring(router.prefix.length);
       router = null;
     }
     clearContent();
