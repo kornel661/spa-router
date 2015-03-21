@@ -22,6 +22,7 @@
 		<li><a href="#/anim/test">/anim/test</a></li>
 		<li><a href="#/anim/fast test">/anim/fast test</a></li>
 		<li><a href="#/anim/hash#goto">/anim/hash</a></li>
+		<li><a href="#/anim/hash/other">/anim/hash/other: subroute and redirect</a></li>
 		<li><a href="#/anim/clear">/anim/clear</a></li>
 	</ul>
 	<h2>Router1</h2>
@@ -43,7 +44,9 @@
 			</template>
 		</web-route>
 		<web-route path="/fast test" elem="fast-test" bindRouter></web-route>
-		<web-route path="/hash"><template ref="hashTemplate"></template></web-route>
+		<web-route path="/hash"><template ref="hashTemplate"></template>
+			<web-route path="other" redirect="/anim/"></web-route>
+		</web-route>
 		<web-route path="*"></web-route>
 	</web-router>
 

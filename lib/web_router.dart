@@ -131,26 +131,27 @@ class WebRouter extends PolymerElement {
     route.path = _joinPaths(pref, route.path);
   }
 
-  /// Initialize the router: core-animated-pages and listen for change events.
+  /// Initialize the router: core-animated-pages and listen for events.
   void initialize() {
     if (_isInitialized) {
       return;
     }
-    //_activeUri = new RouteUri.parse(window.location.href, mode);
-    //routes = this.querySelectorAll("web-route") as List<WebRoute>;
     routes = new List<WebRoute>();
     void walk(List<Element> l, String pref) {
       for (Element route in l) {
         if (route is WebRoute) {
           routes.add(route);
           _prepareRoute(route, pref);
-          walk(route.children, _joinPaths(pref, route.path));
+          walk(route.children, route.path);
         }
       }
     }
     walk(this.children, prefix);
 
-    if (animated) {
+    if (!animated) {
+      // flatten route hierarchy
+      this.children.addAll(routes);
+    } else {
       if (this.children.first is CoreAnimatedPages) {
         _coreAnimatedPages = this.children.first;
       } else {

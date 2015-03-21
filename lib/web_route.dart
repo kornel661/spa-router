@@ -144,9 +144,11 @@ class WebRoute extends PolymerElement with Observable {
     // don't
     //_initializeAjax();
     // it's done on [implChanged]
-    Element elem = this.querySelector("template");
-    if (elem is TemplateElement) {
-      _templateElem = elem;
+    for (Element elem in this.children) {
+      if (elem is TemplateElement) {
+        _templateElem = elem;
+        break;
+      }
     }
   }
 
@@ -154,7 +156,7 @@ class WebRoute extends PolymerElement with Observable {
   void remove() {
     if (router != null) {
       router.routes.remove(this);
-      path = path.substring(router.prefix.length);
+      path = path.substring(router.prefix.length - 1);
       router = null;
     }
     clearContent();
@@ -167,7 +169,6 @@ class WebRoute extends PolymerElement with Observable {
 
   /// Resets route's children.
   void clearContent() {
-    //_uri = null;
     List<Element> newChildren = [];
     if (_templateElem != null) {
       newChildren.add(_templateElem);
@@ -196,7 +197,7 @@ class WebRoute extends PolymerElement with Observable {
         regexp = new RegExp(routePath);
         return regexp.hasMatch(uriPath);
       } catch (e) {
-        print(
+        window.console.error(
             "web-route: error creating regular expression from `${routePath}`. ${e.toString()}");
         return false;
       }
@@ -263,8 +264,11 @@ class WebRoute extends PolymerElement with Observable {
     if (!router.animated && router.previousRoute != null) {
       router.previousRoute.clearContent();
     } else {
-      // the router already arranged to clear the previous route and scroll
-      // when animation ends
+      // The router already arranged to clear the previous route and scroll
+      // when animation ends. There is no animation if prevous route == this.
+      if (router.previousRoute == this) {
+        router.previousRoute.clearContent();
+      }
     }
     if (impl != null && impl != "") {
       // discern the name of the element to create

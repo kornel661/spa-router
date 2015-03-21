@@ -18,6 +18,7 @@
 		<li><a href="transitions.html">go to transitions</a></li>
 		<li><a href="#/">/</a></li>
 		<li><a href="#/test">/test</a></li>
+		<li><a href="#/test/subroute">/test/subroute</a></li>
 		<li><a href="#/click/you">/click/you</a></li>
 		<li><a href="#/garbage?arg1=val1&arg2=val%202&arg3=some val">garbage</a></li>
 		<li><a href="#/garbage?arg1=other val1&arg2=other val%202&arg3=some other val">other garbage</a></li>
@@ -26,7 +27,7 @@
 	<h2>Router1</h2>
 	<web-router noScroll transitions="hero-transition cross-fade">
 		<web-route path="/">
-			<template>
+			<template id="mainTempl">
 				<p>Inline template!
 					<!--<a is="pushstate-anchor" href="/test">test</a>-->
 					<a href="#/test">test</a>
@@ -37,6 +38,7 @@
 			<template>
 				<p>TEST <a href="#/">home</a></p>
 			</template>
+			<web-route path="subroute"><template ref="mainTempl"></template></web-route>
 		</web-route>
 		<web-route path="/garbage" elem="window-location" queryParams="arg1 arg3" bindRouter></web-route>
 		<web-route path="**" uriAttr="url">
