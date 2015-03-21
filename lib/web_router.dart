@@ -40,6 +40,11 @@ class WebRouter extends PolymerElement {
   @PublishedProperty(reflect: true)
   bool relaxedSlash = false;
   /// Whether to use Polymer's core-animated-pages for transitions.
+  ///
+  /// If the first child of the router is <core-animated-pages> then it is used
+  /// for transitions (router's `transitions` attribute is ignored). This gives
+  /// opportunity to configure <core-animated-pages>.
+  /// Otherwise, router creates <core-animated-pages> on its own.
   @published bool animated = false;
   /// Which transitions of the core-animated-pages to use.
   /// E.g., transitions="hero-transition cross-fade"
@@ -81,8 +86,10 @@ class WebRouter extends PolymerElement {
 
   /// CoreAnimatedPages element.
   CoreAnimatedPages _coreAnimatedPages;
-  /// Subscription of popstate events (for address change monitoring).
-  StreamSubscription<PopStateEvent> _popStateSubscription;
+	/// Subscription of popstate events (for address change monitoring).
+	StreamSubscription<PopStateEvent> _popStateSubscription = null;
+	/// Subscription of ends of transitions.
+	StreamSubscription<TransitionEvent> _transitionEndSubscription = null;
 
   @override
   WebRouter.created() : super.created();
@@ -138,15 +145,10 @@ class WebRouter extends PolymerElement {
       }
     }
     walk(this.children, prefix);
-    //for (WebRoute route in routes) {
-    //  _prepareRoute(route);
-    //}
 
-    // <web-router animated transitions="hero-transition cross-fade">
     if (animated) {
       // use shadow DOM to wrap the <web-route> elements in a <core-animated-pages> element
       // <web-router>
-      //   # shadowRoot
       //   <core-animated-pages>
       //     <web-route elem="home-page">
       //       <home-page>
@@ -154,25 +156,23 @@ class WebRouter extends PolymerElement {
       //     </web-route>
       //   </core-animated-pages>
       // </web-router>
-
-      _coreAnimatedPages = new CoreAnimatedPages();
+      if (this.children.first is CoreAnimatedPages) {
+        _coreAnimatedPages = this.children.first;
+      } else {
+        _coreAnimatedPages = new CoreAnimatedPages();
+        _coreAnimatedPages.setAttribute('transitions', transitions);
+      }
       for (WebRoute route in routes) {
         _coreAnimatedPages.append(route);
       }
-
-      // don't know why it needs to be static, but absolute doesn't display the page
-      //_coreAnimatedPages.style.position = 'static';
-
-      // toggle the selected page using selected="path" instead of selected="integer"
       _coreAnimatedPages.setAttribute('valueattr', 'path');
-
-      // pass the transitions attribute from <web-router core-animated-pages transitions="hero-transition cross-fade">
-      // to <core-animated-pages transitions="hero-transition cross-fade">
-      _coreAnimatedPages.setAttribute('transitions', transitions);
-
-      // set the shadow DOM's content
-      //shadowRoot.append(_coreAnimatedPages);
       this.append(_coreAnimatedPages);
+      _coreAnimatedPages.onTransitionEnd.listen((TransitionEvent e) {
+				if (_previousRoute != null) {
+					_previousRoute.clearContent();
+					_activeRoute.scrollToHash();
+				}
+      });
     }
 
     // listen for URL change events
@@ -190,6 +190,9 @@ class WebRouter extends PolymerElement {
     super.detached();
     if (_popStateSubscription != null) {
       _popStateSubscription.cancel();
+    }
+    if (_transitionEndSubscription != null) {
+    	_transitionEndSubscription.cancel();
     }
   }
 
@@ -254,7 +257,8 @@ class WebRouter extends PolymerElement {
       if (_coreAnimatedPages.selected == _activeRoute.path) {
         activeRoute.scrollToHash();
       }
-      _coreAnimatedPages.selected = _activeRoute.path;
+      //_coreAnimatedPages.selected = _activeRoute.path;
+      _coreAnimatedPages.setAttribute('selected', _activeRoute.path);
       // TODO(km): after animation finishes clear invisible routes & scroll to hash
     } else {
       activeRoute.scrollToHash();

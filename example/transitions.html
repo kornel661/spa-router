@@ -16,26 +16,33 @@
 	<ul>
 		<li><a href="">reload</a></li>
 		<li><a href="index.html">go to index</a></li>
-		<li><a href="#/anim/">/</a></li>
-		<li><a href="#/anim/test">/test</a></li>
+		<li><a href="#/">main /</a></li>
+		<li><a href="#/anim/">/anim/</a></li>
+		<li><a href="#/anim/test">/anim/test</a></li>
+		<li><a href="#/anim/fast test">/anim/fast test</a></li>
+		<li><a href="#/anim/hash">/anim/hash</a></li>
+		<li><a href="#/anim/clear">/anim/clear</a></li>
 	</ul>
 	<h2>Router1</h2>
 	<web-router prefix="/anim" animated transitions="hero-transition cross-fade">
 		<web-route path="/">
 			<template>
+				<span hero hero-id="myHero">HERO!</span>
 				<p cross-fade>Inline template!
 					<!--<a is="pushstate-anchor" href="/test">test</a>-->
-					<a href="#/test">test test</a>
+					<a href="#/anim/test">test</a>
 				</p>
 			</template>
 		</web-route>
 		<web-route path="/test">
 			<template>
 				<p cross-fade>TEST <a href="#/anim/">home</a></p>
+				<span hero hero-id="myHero">HERO :-)</span>
 			</template>
 		</web-route>
+		<web-route path="*"></web-route>
 	</web-router>
-
+	<p>Transition test.</p>
 	<script type="application/dart">
 		export 'package:polymer/init.dart';
 	</script>
