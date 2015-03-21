@@ -104,16 +104,16 @@ class WebRouter extends PolymerElement {
       _coreAnimatedPages.append(node);
     }
     if (node is WebRoute) {
-      _prepareRoute(node);
+      _prepareRoute(node, prefix);
       routes.add(node);
     }
     return node;
   }
 
   /// Sets route.router to this and add prefix to route.path.
-  _prepareRoute(WebRoute route) {
+  _prepareRoute(WebRoute route, String pref) {
     route.router = this;
-    route.path = prefix + route.path;
+    route.path = _joinPaths(pref, route.path);
   }
 
   /// Initialize the router: core-animated-pages and listen for change events.
@@ -121,14 +121,24 @@ class WebRouter extends PolymerElement {
     if (_isInitialized) {
       return;
     }
-    _isInitialized = true;
     //_activeUri = new RouteUri.parse(window.location.href, mode);
-    routes = this.querySelectorAll("web-route") as List<WebRoute>;
-    for (WebRoute route in routes) {
-      _prepareRoute(route);
+    //routes = this.querySelectorAll("web-route") as List<WebRoute>;
+    routes = new List<WebRoute>();
+    void walk(List<Element> l, String pref) {
+      for (Element route in l) {
+        if (route is WebRoute) {
+          routes.add(route);
+          _prepareRoute(route, pref);
+          walk(route.children, _joinPaths(pref, route.path));
+        }
+      }
     }
+    walk(this.children, prefix);
+    //for (WebRoute route in routes) {
+    //  _prepareRoute(route);
+    //}
 
-    // <web-router core-animated-pages transitions="hero-transition cross-fade">
+    // <web-router animated transitions="hero-transition cross-fade">
     if (animated) {
       // use shadow DOM to wrap the <web-route> elements in a <core-animated-pages> element
       // <web-router>
@@ -147,7 +157,7 @@ class WebRouter extends PolymerElement {
       }
 
       // don't know why it needs to be static, but absolute doesn't display the page
-      //coreAnimatedPages.style.position = 'static';
+      //_coreAnimatedPages.style.position = 'static';
 
       // toggle the selected page using selected="path" instead of selected="integer"
       _coreAnimatedPages.setAttribute('valueattr', 'path');
@@ -157,13 +167,15 @@ class WebRouter extends PolymerElement {
       _coreAnimatedPages.setAttribute('transitions', transitions);
 
       // set the shadow DOM's content
-      shadowRoot.append(_coreAnimatedPages);
+      //shadowRoot.append(_coreAnimatedPages);
+      this.append(_coreAnimatedPages);
     }
 
     // listen for URL change events
     _popStateSubscription =
         window.onPopState.listen((PopStateEvent e) => _update());
 
+    _isInitialized = true;
     // load the web component for the current route
     _update();
   }
@@ -197,15 +209,14 @@ class WebRouter extends PolymerElement {
     window.dispatchEvent(popStateEvent);
   }
 
-  /// Find the first <web-route> that matches the current URL and change the active route.
+  /// Finds the first <web-route> that matches the current URL and changes the active route.
   /// Wired to PopStateEvents.
   void _update() {
     RouteUri url = new RouteUri.parse(window.location.href, fullPaths);
     // don't load a new route if only the hash fragment changed
     if (activeUri != null &&
         url.path == activeUri.path &&
-        url.search == activeUri.search &&
-        url.isHashPath == activeUri.isHashPath) {
+        url.search == activeUri.search) {
       if (activeRoute != null) {
         activeRoute.uri = url;
         if (url.hash != activeUri.hash) {
@@ -240,9 +251,34 @@ class WebRouter extends PolymerElement {
         activeRoute.scrollToHash();
       }
       _coreAnimatedPages.selected = _activeRoute.path;
+      //_coreAnimatedPages.setAttribute('selected', _activeRoute.path);
+      print("animate? ${_coreAnimatedPages.selected}");
       // TODO(km): after animation finishes clear invisible routes & scroll to hash
     } else {
       activeRoute.scrollToHash();
     }
   }
+}
+
+/// Joins (concatenates) two patch together. Adds or removes a slash between
+/// them if necessary.
+String _joinPaths(String a, String b) {
+  if (a == null || a == "") {
+    return b;
+  }
+  if (b == null || b == "") {
+    return a;
+  }
+  // now both a & b have positive length,
+  // let's get rid of spurious slashes
+  String aEnd = a[a.length - 1];
+  String bStart = b[0];
+  if (aEnd == '/' && bStart == '/') {
+    return a + b.substring(1);
+  }
+  // add slash if needed
+  if (aEnd != '/' && bStart != '/') {
+    return a + '/' + b;
+  }
+  return a + b;
 }

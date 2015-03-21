@@ -20,10 +20,10 @@
 		<li><a href="#/anim/test">/test</a></li>
 	</ul>
 	<h2>Router1</h2>
-	<web-router prefix="/anim" transitions="hero-transition cross-fade">
+	<web-router prefix="/anim" animated transitions="hero-transition cross-fade">
 		<web-route path="/">
 			<template>
-				<p>Inline template!
+				<p cross-fade>Inline template!
 					<!--<a is="pushstate-anchor" href="/test">test</a>-->
 					<a href="#/test">test test</a>
 				</p>
@@ -31,7 +31,7 @@
 		</web-route>
 		<web-route path="/test">
 			<template>
-				<p>TEST <a href="#/">home</a></p>
+				<p cross-fade>TEST <a href="#/anim/">home</a></p>
 			</template>
 		</web-route>
 	</web-router>

@@ -59,12 +59,15 @@ class WebRoute extends PolymerElement with Observable {
   ///   are discraded for the purpose of matching. Query adds bindings, hash
   ///   controls scrolling by default.
   // TODO(km): add handling of `**`
-  @published String path = "/";
+  //@published String path = "/";
+  @PublishedProperty(reflect: true)
+  String path = "/";
   /// Address of the implementation of the element to be shown.
   ///
   /// The implementation will be fetched when the route is activated for the
   /// first time. Probably doesn't work with Polymer.dart see:
   ///   https://code.google.com/p/dart/issues/detail?id=17873
+  // TODO(km): support programmatic changes
   @published String impl = "";
   /// Name of the element to be shown.
   /// It's called the custom element or route's element throughout this documentation.
