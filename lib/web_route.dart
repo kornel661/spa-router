@@ -264,7 +264,7 @@ class WebRoute extends PolymerElement with Observable {
       router.previousRoute.clearContent();
     } else {
       // the router already arranged to clear the previous route and scroll
-    	// when animation ends
+      // when animation ends
     }
     if (impl != null && impl != "") {
       // discern the name of the element to create
@@ -375,7 +375,6 @@ class WebRoute extends PolymerElement with Observable {
         hashElement.scrollIntoView(ScrollAlignment.TOP);
       }
     }
-    // TODO(km): is it working? or maybe scheduleMicrotask()?
     new Future(delayedScroll);
   }
 }

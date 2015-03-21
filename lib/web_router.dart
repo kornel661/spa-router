@@ -72,8 +72,11 @@ class WebRouter extends PolymerElement {
   /// All routes.
   List<WebRoute> routes;
 
+  /// Currently active URL.
   RouteUri get activeUri => _activeUri;
+  /// Currently active route.
   WebRoute get activeRoute => _activeRoute;
+  /// Currently active route.
   set activeRoute(WebRoute r) {
     if (animated && _previousRoute != null) {
       // make sure that the content is cleared even if there was an animation in progress
@@ -82,14 +85,15 @@ class WebRouter extends PolymerElement {
     _previousRoute = _activeRoute;
     _activeRoute = r;
   }
+  /// Previous active route.
   WebRoute get previousRoute => _previousRoute;
 
   /// CoreAnimatedPages element.
   CoreAnimatedPages _coreAnimatedPages;
-	/// Subscription of popstate events (for address change monitoring).
-	StreamSubscription<PopStateEvent> _popStateSubscription = null;
-	/// Subscription of ends of transitions.
-	StreamSubscription<TransitionEvent> _transitionEndSubscription = null;
+  /// Subscription of popstate events (for address change monitoring).
+  StreamSubscription<PopStateEvent> _popStateSubscription = null;
+  /// Subscription of ends of transitions.
+  StreamSubscription<TransitionEvent> _transitionEndSubscription = null;
 
   @override
   WebRouter.created() : super.created();
@@ -147,15 +151,6 @@ class WebRouter extends PolymerElement {
     walk(this.children, prefix);
 
     if (animated) {
-      // use shadow DOM to wrap the <web-route> elements in a <core-animated-pages> element
-      // <web-router>
-      //   <core-animated-pages>
-      //     <web-route elem="home-page">
-      //       <home-page>
-      //       </home-page>
-      //     </web-route>
-      //   </core-animated-pages>
-      // </web-router>
       if (this.children.first is CoreAnimatedPages) {
         _coreAnimatedPages = this.children.first;
       } else {
@@ -168,17 +163,16 @@ class WebRouter extends PolymerElement {
       _coreAnimatedPages.setAttribute('valueattr', 'path');
       this.append(_coreAnimatedPages);
       _coreAnimatedPages.onTransitionEnd.listen((TransitionEvent e) {
-				if (_previousRoute != null) {
-					_previousRoute.clearContent();
-					_activeRoute.scrollToHash();
-				}
+        if (_previousRoute != null) {
+          _previousRoute.clearContent();
+          _activeRoute.scrollToHash();
+        }
       });
     }
-
     // listen for URL change events
     _popStateSubscription =
         window.onPopState.listen((PopStateEvent e) => _update());
-
+    // mark router as initialized
     _isInitialized = true;
     // load the web component for the current route
     _update();
@@ -192,7 +186,7 @@ class WebRouter extends PolymerElement {
       _popStateSubscription.cancel();
     }
     if (_transitionEndSubscription != null) {
-    	_transitionEndSubscription.cancel();
+      _transitionEndSubscription.cancel();
     }
   }
 
@@ -233,7 +227,8 @@ class WebRouter extends PolymerElement {
       }
       return;
     }
-    // fire a state-change event on the web-router and return early if the user called event.preventDefault()
+    // fire a state-change event on the web-router and return early if the user
+    // called event.preventDefault()
     Map<String, String> eventDetail = {'path': url.path};
     if (!fireEvent(WebEvent.stateChange, eventDetail, this)) {
       return;
@@ -257,9 +252,8 @@ class WebRouter extends PolymerElement {
       if (_coreAnimatedPages.selected == _activeRoute.path) {
         activeRoute.scrollToHash();
       }
-      //_coreAnimatedPages.selected = _activeRoute.path;
       _coreAnimatedPages.setAttribute('selected', _activeRoute.path);
-      // TODO(km): after animation finishes clear invisible routes & scroll to hash
+      // clearing invisible routes & scrolling taken care in [initialize]
     } else {
       activeRoute.scrollToHash();
     }

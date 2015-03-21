@@ -21,7 +21,7 @@
 		<li><a href="#/anim/">/anim/</a></li>
 		<li><a href="#/anim/test">/anim/test</a></li>
 		<li><a href="#/anim/fast test">/anim/fast test</a></li>
-		<li><a href="#/anim/hash">/anim/hash</a></li>
+		<li><a href="#/anim/hash#goto">/anim/hash</a></li>
 		<li><a href="#/anim/clear">/anim/clear</a></li>
 	</ul>
 	<h2>Router1</h2>
@@ -43,10 +43,17 @@
 			</template>
 		</web-route>
 		<web-route path="/fast test" elem="fast-test" bindRouter></web-route>
-		<web-route path="/hash"></web-route>
+		<web-route path="/hash"><template ref="hashTemplate"></template></web-route>
 		<web-route path="*"></web-route>
 	</web-router>
 
+	<template id="hashTemplate">
+		<span cross-fade>see below for hero</span>
+		<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+		<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+		<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+		<span hero hero-id="myHero" id="goto">My hero!</span><br><br>
+	</template>
 	<script type="application/dart">
 		export 'package:polymer/init.dart';
 	</script>
