@@ -66,7 +66,6 @@ class WebRoute extends PolymerElement with Observable {
   /// The implementation will be fetched when the route is activated for the
   /// first time. Probably doesn't work with Polymer.dart see:
   ///   https://code.google.com/p/dart/issues/detail?id=17873
-  // TODO(km): support programmatic changes
   @PublishedProperty(reflect: true)
   String impl = "";
   /// Name of the element to be shown.
@@ -264,7 +263,8 @@ class WebRoute extends PolymerElement with Observable {
     if (!router.animated && router.previousRoute != null) {
       router.previousRoute.clearContent();
     } else {
-      // TODO(km): arrange to clear the previous route when animation ends
+      // the router already arranged to clear the previous route and scroll
+    	// when animation ends
     }
     if (impl != null && impl != "") {
       // discern the name of the element to create
@@ -380,6 +380,7 @@ class WebRoute extends PolymerElement with Observable {
   }
 }
 
+/// Trusting node validator class to validate anything imported by CoreAjax.
 class _TrusingNodeValidator implements NodeValidator {
   @override
   bool allowsAttribute(Element element, String attributeName, String value) =>
@@ -389,4 +390,5 @@ class _TrusingNodeValidator implements NodeValidator {
   bool allowsElement(Element element) => true;
 }
 
+/// Trusting node validator to validate anything imported by CoreAjax.
 _TrusingNodeValidator _nodeValidator = new _TrusingNodeValidator();

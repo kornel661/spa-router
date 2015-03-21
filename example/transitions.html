@@ -9,6 +9,7 @@
 	<link rel="import" href="packages/web_router/web_route.html">
 
 	<link rel="import" href="src/window_location.html">
+	<link rel="import" href="src/fast_test.html">
 </head>
 
 <body unresolved>
@@ -27,22 +28,25 @@
 	<web-router prefix="/anim" animated transitions="hero-transition cross-fade">
 		<web-route path="/">
 			<template>
+				<p>paragraph /</p>
 				<span hero hero-id="myHero">HERO!</span>
 				<p cross-fade>Inline template!
-					<!--<a is="pushstate-anchor" href="/test">test</a>-->
 					<a href="#/anim/test">test</a>
 				</p>
 			</template>
 		</web-route>
 		<web-route path="/test">
 			<template>
+				<p>paragraph /test</p>
 				<p cross-fade>TEST <a href="#/anim/">home</a></p>
 				<span hero hero-id="myHero">HERO :-)</span>
 			</template>
 		</web-route>
+		<web-route path="/fast test" elem="fast-test" bindRouter></web-route>
+		<web-route path="/hash"></web-route>
 		<web-route path="*"></web-route>
 	</web-router>
-	<p>Transition test.</p>
+
 	<script type="application/dart">
 		export 'package:polymer/init.dart';
 	</script>
