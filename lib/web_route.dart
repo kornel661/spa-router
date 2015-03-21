@@ -59,7 +59,6 @@ class WebRoute extends PolymerElement with Observable {
   ///   are discraded for the purpose of matching. Query adds bindings, hash
   ///   controls scrolling by default.
   // TODO(km): add handling of `**`
-  //@published String path = "/";
   @PublishedProperty(reflect: true)
   String path = "/";
   /// Address of the implementation of the element to be shown.
@@ -68,33 +67,41 @@ class WebRoute extends PolymerElement with Observable {
   /// first time. Probably doesn't work with Polymer.dart see:
   ///   https://code.google.com/p/dart/issues/detail?id=17873
   // TODO(km): support programmatic changes
-  @published String impl = "";
+  @PublishedProperty(reflect: true)
+  String impl = "";
   /// Name of the element to be shown.
   /// It's called the custom element or route's element throughout this documentation.
-  @published String elem = "";
+  @PublishedProperty(reflect: true)
+  String elem = "";
   /// If not empty the route redirects there.
-  @published String redirect = "";
+  @PublishedProperty(reflect: true)
+  String redirect = "";
   /// Is the path a regular expression?
-  @published bool regex = false;
+  @PublishedProperty(reflect: true)
+  bool regex = false;
   /// Whether to bind the router to the route's CustomElement.
   ///
   /// The <custom-element> must be supported by Dart class with public non-final
   /// field `router` of type WebRouter. The field will be set to route's router
   /// when the element is instantiated.
-  @published bool bindRouter = false;
+  @PublishedProperty(reflect: true)
+  bool bindRouter = false;
   /// The name of the attribute to which route's uri will be bound. Doesn't
   /// have effect for templates.
   ///
   /// If uriAttr="nameA" is set then nameA attribute of the route's element
   /// will be set to the route's URI.
-  @published String uriAttr = "";
+  @PublishedProperty(reflect: true)
+  String uriAttr = "";
   /// Don't scroll to hash.
-  @published bool noScroll = false;
+  @PublishedProperty(reflect: true)
+  bool noScroll = false;
   /// If set it specifies a space-separated list of query parameters, e.g.,
   ///   `param1 param2` for `?param1=val1&param2=val...`
   /// that will be forwarded (as attributes) to the route's element.
   /// If not set then all parameters are forwarded.
-  @published String queryParams = null;
+  @PublishedProperty(reflect: true)
+  String queryParams = null;
 
   /// Route's router. (Set by the router during initialization.)
   WebRouter router;
@@ -111,10 +118,9 @@ class WebRoute extends PolymerElement with Observable {
   @override
   WebRoute.created() : super.created();
 
-  @override
-  void ready() {
-    super.ready();
-    _contentElem = shadowRoot.querySelector("content");
+  /// Initilizes and sets up the CoreAjax element.
+  void _initializeAjax() {
+    _ajaxLoaded = false;
     _ajax = $['ajax'];
     _ajax.onCoreResponse.first.then((CustomEvent e) {
       // add definition of elem
@@ -125,8 +131,21 @@ class WebRoute extends PolymerElement with Observable {
         _createCustomElem();
       }
     });
+  }
+
+  /// Fired when `impl` attribute changes. Resets the CoreAjax element.
+  void implChanged() {
+    _initializeAjax();
+  }
+
+  @override
+  void ready() {
+    super.ready();
+    _contentElem = shadowRoot.querySelector("content");
+    // don't
+    //_initializeAjax();
+    // it's done on [implChanged]
     Element elem = this.querySelector("template");
-    //elem = children.first;
     if (elem is TemplateElement) {
       _templateElem = elem;
     }
@@ -147,7 +166,7 @@ class WebRoute extends PolymerElement with Observable {
   String toString() =>
       "web-route (path: $path, imp: $impl, elem: $elem, regex: $regex, redirect: $redirect, bindRouter: $bindRouter)";
 
-  /// Clears route's content.
+  /// Resets route's children.
   void clearContent() {
     //_uri = null;
     List<Element> newChildren = [];

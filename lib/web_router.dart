@@ -33,10 +33,12 @@ class WebRouter extends PolymerElement {
   ///   document.querySelector('web-router').initialize();
   @published bool manualInit = false;
   /// Use full paths for routing (default behaviour is to use hashes).
-  @published bool fullPaths = false;
+  @PublishedProperty(reflect: true)
+  bool fullPaths = false;
   /// If relaxedSlash is set then trailing slashes are ignored during matching,
   /// i.e., '/home' matches '/home/' as well.
-  @published bool relaxedSlash = false;
+  @PublishedProperty(reflect: true)
+  bool relaxedSlash = false;
   /// Whether to use Polymer's core-animated-pages for transitions.
   @published bool animated = false;
   /// Which transitions of the core-animated-pages to use.
@@ -45,10 +47,12 @@ class WebRouter extends PolymerElement {
   @published String transitions = "";
   /// Whether to bind the router to the route's CustomElement.
   /// (Equivalent to setting bindRouter on all routes.)
-  @published bool bindRouter = false;
+  @PublishedProperty(reflect: true)
+  bool bindRouter = false;
   /// Don't scroll to hash.
   /// (Equivalent to setting noScroll on all routes.)
-  @published bool noScroll = false;
+  @PublishedProperty(reflect: true)
+  bool noScroll = false;
   /// Prefix added to all child routes' paths.
   @published String prefix = "";
 
@@ -251,8 +255,6 @@ class WebRouter extends PolymerElement {
         activeRoute.scrollToHash();
       }
       _coreAnimatedPages.selected = _activeRoute.path;
-      //_coreAnimatedPages.setAttribute('selected', _activeRoute.path);
-      print("animate? ${_coreAnimatedPages.selected}");
       // TODO(km): after animation finishes clear invisible routes & scroll to hash
     } else {
       activeRoute.scrollToHash();
