@@ -11,7 +11,7 @@ for some more examples. Live demos are coming...
 The project is still in the EXPERIMENTAL stage and is as for now untested.
 Please feel free to try it out, test and contribute. Source code is available on
 [github](https://github.com/kornel661/web-router). You can also
-[report problem and isses](https://github.com/kornel661/web-router/issues) there.
+[report problems and issues](https://github.com/kornel661/web-router/issues) there.
 
 
 # Introduction

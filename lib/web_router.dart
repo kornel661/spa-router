@@ -61,7 +61,7 @@ class WebRouter extends PolymerElement {
   /// Prefix added to all child routes' paths.
   @published String prefix = "";
 
-  /// Is the router initilized already?
+  /// Is the router initialized already?
   bool _isInitialized = false;
   /// Active URL.
   RouteUri _activeUri;
@@ -174,7 +174,7 @@ class WebRouter extends PolymerElement {
         window.onPopState.listen((PopStateEvent e) => _update());
     // mark router as initialized
     _isInitialized = true;
-    // load the web component for the current route (in [Furute] to give routes
+    // load the web component for the current route (in [Future] to give routes
     // a chance to update their internal state (e.g., _uriMatcher)
     new Future(_update);
   }

@@ -39,7 +39,7 @@ import 'package:web_router/src/uri_matcher.dart';
 ///     impl="/path/to/custom_element.html"
 ///   then "/path/to/custom_element.html" is fetched and a new element is created.
 ///   The element's name is `custom-element` (last segment of the uri without
-///   `.html` and with undercores replaced by dashes or, if [elem] is set, it is
+///   `.html` and with underscores replaced by dashes or, if [elem] is set, it is
 ///   just [elem].
 /// * If just [elem] is set (e.g., elem="my-element") then, upon route's
 ///   activation, new [elem] element is created (e.g., `<my-element>`).
@@ -54,10 +54,10 @@ class WebRoute extends PolymerElement with Observable {
   ///   name=Joe if route's element is a template or sets `name` attribute of
   ///   the route's element to `Joe` otherwise.
   /// * `*` matches a single segment (doesn't add any bindings).
-  /// * Path may end with `**` segment which mathes any number of segments.
+  /// * Path may end with `**` segment which matches any number of segments.
   /// * All other segments must match literally.
   /// * The query string (starting at `?`) and hash (starting at `#`) of the uri
-  ///   are discraded for the purpose of matching. Query adds bindings, hash
+  ///   are discarded for the purpose of matching. Query adds bindings, hash
   ///   controls scrolling by default.
   @PublishedProperty(reflect: true)
   String path = "/";
@@ -121,7 +121,7 @@ class WebRoute extends PolymerElement with Observable {
   @override
   WebRoute.created() : super.created();
 
-  /// Initilizes and sets up the CoreAjax element.
+  /// Initializes and sets up the CoreAjax element.
   void _initializeAjax() {
     _ajaxLoaded = false;
     _ajax = $['ajax'];
@@ -233,7 +233,7 @@ class WebRoute extends PolymerElement with Observable {
       router.previousRoute.clearContent();
     } else {
       // The router already arranged to clear the previous route and scroll
-      // when animation ends. There is no animation if prevous route == this.
+      // when animation ends. There is no animation if previous route == this.
       if (router.previousRoute == this) {
         router.previousRoute.clearContent();
       }
