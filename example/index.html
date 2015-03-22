@@ -4,9 +4,9 @@
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-	<title>web-router examples</title>
-	<link rel="import" href="packages/web_router/web_router.html">
-	<link rel="import" href="packages/web_router/web_route.html">
+	<title>spa-router examples</title>
+	<link rel="import" href="packages/spa_router/spa_router.html">
+	<link rel="import" href="packages/spa_router/spa_route.html">
 
 	<link rel="import" href="src/window_location.html">
 </head>
@@ -25,43 +25,43 @@
 		<li><a href="#/garbage?arg1=val1&arg2=val%202&arg3=some val#someHash">garbage with hash</a></li>
 	</ul>
 	<h2>Router1</h2>
-	<web-router noScroll transitions="hero-transition cross-fade">
-		<web-route path="/">
+	<spa-router noScroll transitions="hero-transition cross-fade">
+		<spa-route path="/">
 			<template id="mainTempl">
 				<p>Inline template!
 					<!--<a is="pushstate-anchor" href="/test">test</a>-->
 					<a href="#/test">test</a>
 				</p>
 			</template>
-		</web-route>
-		<web-route path="/test">
+		</spa-route>
+		<spa-route path="/test">
 			<template>
 				<p>TEST <a href="#/">home</a></p>
 			</template>
-			<web-route path="subroute"><template ref="mainTempl"></template></web-route>
-		</web-route>
-		<web-route path="/garbage" elem="window-location" queryParams="arg1 arg3" bindRouter></web-route>
-		<web-route path="**" uriAttr="url">
+			<spa-route path="subroute"><template ref="mainTempl"></template></spa-route>
+		</spa-route>
+		<spa-route path="/garbage" elem="window-location" queryParams="arg1 arg3" bindRouter></spa-route>
+		<spa-route path="**" uriAttr="url">
 			<template>
 				Unknown path: {{url}}<br>
 			</template>
-		</web-route>
-	</web-router>
+		</spa-route>
+	</spa-router>
 	<h2>Router2</h2>
-	<web-router>
-		<web-route path="/">
+	<spa-router>
+		<spa-route path="/">
 			<template>
 				<p>Inline template! <a href="#/test">test</a></p>
 			</template>
-		</web-route>
-		<web-route path="/test">
+		</spa-route>
+		<spa-route path="/test">
 			<template>
 				<p>TEST <a href="#/">home</a></p>
 			</template>
-		</web-route>
-		<web-route path="/click/:name" impl="src/click_me.html"></web-route>
-		<web-route path="**" elem="window-location"></web-route>
-	</web-router>
+		</spa-route>
+		<spa-route path="/click/:name" impl="src/click_me.html"></spa-route>
+		<spa-route path="**" elem="window-location"></spa-route>
+	</spa-router>
 
 	<script type="application/dart">
 		export 'package:polymer/init.dart';

@@ -1,17 +1,18 @@
 <!--
-    Web Router - dart
-    Copyright (c) 2015 Kornel Maczyński, pjv, Erik Ringsmuth. For other contributors, see Github.
+  SPA router
+  Copyright (c) 2015 Kornel Maczyński, pjv, Erik Ringsmuth.
+  For other contributors, see Github.
 -->
 
 <link rel="import" href="../../packages/polymer/polymer.html">
 <link rel="import" href="../../packages/core_elements/core_animated_pages.html">
 
 <polymer-element
-		name="web-router"
+		name="spa-router"
 		attributes="manualInit fullPaths relaxedSlash animated transitions bindRouter noScroll">
 	<template>
-		<link href="web_router.css" rel="stylesheet">
+		<link href="spa_router.css" rel="stylesheet">
 		<content></content>
 	</template>
-	<script type="application/dart" src="web_router.dart"></script>
+	<script type="application/dart" src="spa_router.dart"></script>
 </polymer-element>

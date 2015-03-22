@@ -1,6 +1,7 @@
 /*
- *  Web Router - dart
- *  Copyright (c) 2015 Kornel Maczyński, pjv, Erik Ringsmuth. For other contributors, see Github.
+ * SPA router
+ * Copyright (c) 2015 Kornel Maczyński.
+ * For other contributors, see Github.
  */
 @HtmlImport('fast_test.html')
 library fast_test;
@@ -8,7 +9,7 @@ library fast_test;
 import 'dart:async';
 import 'package:polymer/polymer.dart';
 
-import 'package:web_router/web_router.dart';
+import 'package:spa_router/spa_router.dart';
 
 @CustomTag('fast-test')
 class FastTest extends PolymerElement {
@@ -16,7 +17,7 @@ class FastTest extends PolymerElement {
   @published String urlB = "/anim/test";
   @published String urlC = "/anim/fast test";
 
-  WebRouter router = null;
+  SpaRouter router = null;
 
   @override
   FastTest.created() : super.created();

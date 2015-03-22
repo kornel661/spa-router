@@ -1,7 +1,7 @@
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_config.dart';
 
-import 'package:web_router/src/routeuri.dart';
+import 'package:spa_router/src/routeuri.dart';
 
 main() {
   useHtmlConfiguration();

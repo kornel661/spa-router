@@ -1,10 +1,10 @@
-name: web_router
+name: spa_router
 version: 0.0.1
 author: Kornel Maczyński <kornel661@gmail.com>
 description: >
   Routing element for HTML5 single page applications (declarative syntax :-))
   written in Polymer.dart.
-homepage: https://github.com/kornel661/web-router
+homepage: https://github.com/kornel661/spa-router
 environment:
   sdk: '>=1.8.5'
 dependencies:

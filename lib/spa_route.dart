@@ -1,9 +1,10 @@
 /*
- *  Web Router - dart
- *  Copyright (c) 2015 Kornel Maczyński, pjv, Erik Ringsmuth. For other contributors, see Github.
+ * SPA router
+ * Copyright (c) 2015 Kornel Maczyński, pjv, Erik Ringsmuth.
+ * For other contributors, see Github.
  */
-@HtmlImport('package:/web_router/web_route.html')
-library web_route;
+@HtmlImport('package:/spa_router/spa_route.html')
+library spa_route;
 
 import 'package:polymer/polymer.dart';
 import 'package:core_elements/core_ajax_dart.dart';
@@ -11,15 +12,15 @@ import 'dart:html';
 import 'dart:async';
 import 'package:template_binding/template_binding.dart';
 
-import 'package:web_router/web_router.dart';
-import 'package:web_router/src/routeuri.dart';
-import 'package:web_router/src/events.dart';
-import 'package:web_router/src/uri_matcher.dart';
+import 'package:spa_router/spa_router.dart';
+import 'package:spa_router/src/routeuri.dart';
+import 'package:spa_router/src/events.dart';
+import 'package:spa_router/src/uri_matcher.dart';
 
-/// <web-route> is an element describing a route within a web-router element.
+/// <spa-route> is an element describing a route within a spa-router element.
 /// Some syntax (square brackets indicate optional attributes):
 /// ```
-///   <web-route
+///   <spa-route
 ///     [path="/route/path"]
 ///     [impl="/path/to/custom_element.html"]
 ///     [elem="custom-element-name"]
@@ -28,7 +29,7 @@ import 'package:web_router/src/uri_matcher.dart';
 ///     [uriAttr="url"]
 ///     [noScroll]
 ///     [queryParams="param1 param2"]>
-///   </web-route>
+///   </spa-route>
 /// ```
 /// String attributes default to empty string with notable exceptions [path]="/"
 /// and [queryParams]="*". Boolean attributes default to false.
@@ -43,8 +44,8 @@ import 'package:web_router/src/uri_matcher.dart';
 ///   just [elem].
 /// * If just [elem] is set (e.g., elem="my-element") then, upon route's
 ///   activation, new [elem] element is created (e.g., `<my-element>`).
-@CustomTag('web-route')
-class WebRoute extends PolymerElement with Observable {
+@CustomTag('spa-route')
+class SpaRoute extends PolymerElement with Observable {
   /// Path of the route. If parent router's prefix is set it is added to the path.
   ///
   /// Unless [regex] is set:
@@ -81,7 +82,7 @@ class WebRoute extends PolymerElement with Observable {
   /// Whether to bind the router to the route's CustomElement.
   ///
   /// The <custom-element> must be supported by Dart class with public non-final
-  /// field `router` of type WebRouter. The field will be set to route's router
+  /// field `router` of type [SpaRouter]. The field will be set to route's router
   /// when the element is instantiated.
   @PublishedProperty(reflect: true)
   bool bindRouter = false;
@@ -103,15 +104,15 @@ class WebRoute extends PolymerElement with Observable {
   String queryParams = "*";
 
   /// Route's router. (Set by the router during initialization.)
-  WebRouter router;
+  SpaRouter router;
   /// Route's current uri.
   RouteUri uri;
 
   /// [UriMatcher] for route's [path].
   UriMatcher _uriMatcher = newMatcher("/");
-  /// [ContentElement] of this [WebRoute].
+  /// [ContentElement] of this [SpaRoute].
   ContentElement _contentElem;
-  /// [TemplateElement] of this [WebRoute].
+  /// [TemplateElement] of this [SpaRoute].
   TemplateElement _templateElem;
   /// [CoreAjax] element for on-demand retrieving of route's elements.
   CoreAjax _ajax;
@@ -119,7 +120,7 @@ class WebRoute extends PolymerElement with Observable {
   bool _ajaxLoaded = false;
 
   @override
-  WebRoute.created() : super.created();
+  SpaRoute.created() : super.created();
 
   /// Initializes and sets up the CoreAjax element.
   void _initializeAjax() {
@@ -173,7 +174,7 @@ class WebRoute extends PolymerElement with Observable {
 
   @override
   String toString() =>
-      "web-route (path: $path, imp: $impl, elem: $elem, regex: $regex, redirect: $redirect, bindRouter: $bindRouter)";
+      "spa-route (path: $path, imp: $impl, elem: $elem, regex: $regex, redirect: $redirect, bindRouter: $bindRouter)";
 
   /// Resets route's children.
   void clearContent() {
@@ -205,7 +206,7 @@ class WebRoute extends PolymerElement with Observable {
         return regexp.hasMatch(uriPath);
       } catch (e) {
         window.console.error(
-            "web-route: error creating regular expression from `${routePath}`. ${e.toString()}");
+            "spa-route: error creating regular expression from `${routePath}`. ${e.toString()}");
         return false;
       }
     }
@@ -271,7 +272,7 @@ class WebRoute extends PolymerElement with Observable {
   void _createCustomElem() {
     if (elem == null || elem == "") {
       window.console
-          .error("web-route: can't guess the name of the element `elem`");
+          .error("spa-route: can't guess the name of the element `elem`");
       return;
     }
     Element customElem = document.createElement(elem);
@@ -281,20 +282,20 @@ class WebRoute extends PolymerElement with Observable {
       try {
         (customElem as dynamic).router = router;
       } catch (e) {
-        window.console.error("""web-route: error binding router
+        window.console.error("""spa-route: error binding router
            (if bindRouter is enabled the route's element must be supported by
-           Dart class with public non-final field `router` of type WebRouter):
+           Dart class with public non-final field `router` of type SpaRouter):
            ${e}""");
       }
     }
     append(customElem);
   }
 
-  /// Returns model for the [WebRoute]'s element (for binding).
+  /// Returns model for the [SpaRoute]'s element (for binding).
   Map<String, String> get model {
     Map<String, String> model = new Map<String, String>();
     if (uri == null) {
-      window.console.error("web-route: can't create model, _uri==null.");
+      window.console.error("spa-route: can't create model, _uri==null.");
       return model;
     }
     if (uriAttr != null && uriAttr != "") {
@@ -356,7 +357,7 @@ class WebRoute extends PolymerElement with Observable {
 
   /// Returns a stream of route-activate events. See [fireRouteActivate].
   ElementStream<CustomEvent> get onRouteActivate {
-    return this.on[WebEvent.routeActivate];
+    return this.on[SpaEvent.routeActivate];
   }
 }
 

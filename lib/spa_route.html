@@ -1,19 +1,20 @@
 <!--
-    Web Router - dart
-    Copyright (c) 2015 Kornel Maczyński, pjv, Erik Ringsmuth. For other contributors, see Github.
+  SPA router
+  Copyright (c) 2015 Kornel Maczyński, pjv, Erik Ringsmuth.
+  For other contributors, see Github.
 -->
 
 <link rel="import" href="../../packages/polymer/polymer.html">
 <link rel="import" href="../../packages/core_elements/core_ajax_dart.html">
 
 <polymer-element
-		name="web-route"
+		name="spa-route"
 		attributes="path impl elem regex redirect bindRouter uriAttr noScroll queryParams">
 	<template>
-		<link href="web_route.css" rel="stylesheet">
+		<link href="spa_route.css" rel="stylesheet">
 		<content></content>
 		<core-ajax-dart id="ajax" handleAs="text" auto="false" url="{{impl}}">
 		</core-ajax-dart>
 	</template>
-	<script type="application/dart" src="web_route.dart"></script>
+	<script type="application/dart" src="spa_route.dart"></script>
 </polymer-element>

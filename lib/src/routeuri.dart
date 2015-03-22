@@ -1,3 +1,8 @@
+/*
+ * SPA router
+ * Copyright (c) 2015 Kornel Maczyński.
+ * For other contributors, see Github.
+ */
 library routeuri;
 
 /// Class representing URIs handled by routes.

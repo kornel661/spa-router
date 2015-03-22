@@ -1,6 +1,7 @@
 /*
- *  Web Router - dart
- *  Copyright (c) 2015 Kornel Maczyński, pjv, Erik Ringsmuth. For other contributors, see Github.
+ * SPA router
+ * Copyright (c) 2015 Kornel Maczyński.
+ * For other contributors, see Github.
  */
 @HtmlImport('window_location.html')
 library window_location;
@@ -8,7 +9,7 @@ library window_location;
 import 'package:polymer/polymer.dart';
 import 'dart:html';
 
-import 'package:web_router/web_router.dart';
+import 'package:spa_router/spa_router.dart';
 
 @CustomTag('window-location')
 class WindowLocation extends PolymerElement {
@@ -16,7 +17,7 @@ class WindowLocation extends PolymerElement {
   @published String arg2 = "";
   @published String arg3 = "";
 
-  @observable WebRouter router = null;
+  @observable SpaRouter router = null;
 
   @override
   WindowLocation.created() : super.created();

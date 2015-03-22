@@ -1,22 +1,23 @@
 /*
- *  Web Router - dart
- *  Copyright (c) 2015 Kornel Maczyński, pjv, Erik Ringsmuth. For other contributors, see Github.
+ * SPA router
+ * Copyright (c) 2015 Kornel Maczyński, pjv, Erik Ringsmuth.
+ * For other contributors, see Github.
  */
-@HtmlImport('package:/web_router/web_router.html')
-library web_router;
+@HtmlImport('package:/spa_router/spa_router.html')
+library spa_router;
 
 import 'package:polymer/polymer.dart';
 import 'dart:html';
 import 'dart:async';
 import 'package:core_elements/core_animated_pages.dart';
 
-import 'package:web_router/web_route.dart';
-import 'package:web_router/src/routeuri.dart';
-import 'package:web_router/src/events.dart';
+import 'package:spa_router/spa_route.dart';
+import 'package:spa_router/src/routeuri.dart';
+import 'package:spa_router/src/events.dart';
 
-/// web-router is a router element.
+/// spa-router is a router element.
 /// Example usage (square brackets indicate optional attributes):
-///   <web-router
+///   <spa-router
 ///     [manualInit]
 ///     [fullPaths]
 ///     [relaxedSlash]
@@ -24,13 +25,13 @@ import 'package:web_router/src/events.dart';
 ///     [bindRouter]
 ///     [noScroll]
 ///     [prefix="/prefix/path"]>
-///       <web-route ...></web-route>
+///       <spa-route ...></spa-route>
 ///       ...
-///   </web-router>
-@CustomTag('web-router')
-class WebRouter extends PolymerElement {
+///   </spa-router>
+@CustomTag('spa-router')
+class SpaRouter extends PolymerElement {
   /// If manualInit is set one has to initialize the router manually:
-  ///   document.querySelector('web-router').initialize();
+  ///   document.querySelector('spa-router').initialize();
   @published bool manualInit = false;
   /// Use full paths for routing (default behaviour is to use hashes).
   @PublishedProperty(reflect: true)
@@ -66,18 +67,18 @@ class WebRouter extends PolymerElement {
   /// Active URL.
   RouteUri _activeUri;
   /// Previous active route.
-  WebRoute _previousRoute;
+  SpaRoute _previousRoute;
   /// Currently active route.
-  WebRoute _activeRoute;
+  SpaRoute _activeRoute;
   /// All routes.
-  List<WebRoute> routes;
+  List<SpaRoute> routes;
 
   /// Currently active URL.
   RouteUri get activeUri => _activeUri;
   /// Currently active route.
-  WebRoute get activeRoute => _activeRoute;
+  SpaRoute get activeRoute => _activeRoute;
   /// Currently active route.
-  set activeRoute(WebRoute r) {
+  set activeRoute(SpaRoute r) {
     if (animated && _previousRoute != null) {
       // make sure that the content is cleared even if there was an animation in progress
       _previousRoute.clearContent();
@@ -86,7 +87,7 @@ class WebRouter extends PolymerElement {
     _activeRoute = r;
   }
   /// Previous active route.
-  WebRoute get previousRoute => _previousRoute;
+  SpaRoute get previousRoute => _previousRoute;
 
   /// CoreAnimatedPages element.
   CoreAnimatedPages _coreAnimatedPages;
@@ -96,7 +97,7 @@ class WebRouter extends PolymerElement {
   StreamSubscription<TransitionEvent> _transitionEndSubscription = null;
 
   @override
-  WebRouter.created() : super.created();
+  SpaRouter.created() : super.created();
 
   @override
   void domReady() {
@@ -117,7 +118,7 @@ class WebRouter extends PolymerElement {
     } else {
       _coreAnimatedPages.append(node);
     }
-    if (node is WebRoute) {
+    if (node is SpaRoute) {
       _prepareRoute(node, prefix);
       routes.add(node);
     }
@@ -125,7 +126,7 @@ class WebRouter extends PolymerElement {
   }
 
   /// Sets [route.router] to [this] and adds prefix to [route.path].
-  _prepareRoute(WebRoute route, String pref) {
+  _prepareRoute(SpaRoute route, String pref) {
     route.router = this;
     route.path = _joinPaths(pref, route.path);
   }
@@ -135,10 +136,10 @@ class WebRouter extends PolymerElement {
     if (_isInitialized) {
       return;
     }
-    routes = new List<WebRoute>();
+    routes = new List<SpaRoute>();
     void walk(List<Element> l, String pref) {
       for (Element route in l) {
-        if (route is WebRoute) {
+        if (route is SpaRoute) {
           routes.add(route);
           _prepareRoute(route, pref);
           walk(route.children, route.path);
@@ -157,7 +158,7 @@ class WebRouter extends PolymerElement {
         _coreAnimatedPages = new CoreAnimatedPages();
         _coreAnimatedPages.setAttribute('transitions', transitions);
       }
-      for (WebRoute route in routes) {
+      for (SpaRoute route in routes) {
         _coreAnimatedPages.append(route);
       }
       _coreAnimatedPages.setAttribute('valueattr', 'path');
@@ -211,11 +212,11 @@ class WebRouter extends PolymerElement {
     window.dispatchEvent(popStateEvent);
   }
 
-  /// Finds the first <web-route> that matches the current URL and changes the active route.
+  /// Finds the first <spa-route> that matches the current URL and changes the active route.
   /// Wired to PopStateEvents.
   void _update() {
     RouteUri url = new RouteUri.parse(window.location.href, fullPaths);
-    // fire a address-change event on the web-router and return early if the user
+    // fire a address-change event on the spa-router and return early if the user
     // called event.preventDefault()
     if (!fireAddressChange(this, url.path)) {
       return;
@@ -234,7 +235,7 @@ class WebRouter extends PolymerElement {
       return;
     }
     // find the first matching route
-    for (WebRoute route in routes) {
+    for (SpaRoute route in routes) {
       if (route.isMatch(url, !relaxedSlash)) {
         _activeUri = url;
         route.activate(url);
@@ -261,15 +262,15 @@ class WebRouter extends PolymerElement {
 
   /// Returns a stream of route-not-found events. See [fireRouteNotFound].
   ElementStream<CustomEvent> get onRouteNotFound {
-    return this.on[WebEvent.routeNotFound];
+    return this.on[SpaEvent.routeNotFound];
   }
   /// Returns a stream of route-activate events. See [fireRouteActivate].
   ElementStream<CustomEvent> get onRouteActivate {
-    return this.on[WebEvent.routeActivate];
+    return this.on[SpaEvent.routeActivate];
   }
   /// Returns a stream of address-change events. See [fireAddressChange].
   ElementStream<CustomEvent> get onAddressChange {
-    return this.on[WebEvent.addressChange];
+    return this.on[SpaEvent.addressChange];
   }
 }
 

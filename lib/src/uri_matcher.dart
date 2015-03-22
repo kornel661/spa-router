@@ -1,3 +1,8 @@
+/*
+ * SPA router
+ * Copyright (c) 2015 Kornel Maczyński.
+ * For other contributors, see Github.
+ */
 library uri_matcher;
 
 /// UriMatcher functions take String [uri] argument. If uri doesn't match then
