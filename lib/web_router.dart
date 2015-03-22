@@ -108,7 +108,6 @@ class WebRouter extends PolymerElement {
 
   @override
   Node append(Node node) {
-    // TODO(km): check if it works
     if (!_isInitialized) {
       super.append(node);
       return node;
@@ -215,6 +214,11 @@ class WebRouter extends PolymerElement {
   /// Wired to PopStateEvents.
   void _update() {
     RouteUri url = new RouteUri.parse(window.location.href, fullPaths);
+    // fire a address-change event on the web-router and return early if the user
+    // called event.preventDefault()
+    if (!fireAddressChange(this, url.path)) {
+      return;
+    }
     // don't load a new route if only the hash fragment changed
     if (activeUri != null &&
         url.path == activeUri.path &&
@@ -228,12 +232,6 @@ class WebRouter extends PolymerElement {
       }
       return;
     }
-    // fire a state-change event on the web-router and return early if the user
-    // called event.preventDefault()
-    Map<String, String> eventDetail = {'path': url.path};
-    if (!fireEvent(WebEvent.stateChange, eventDetail, this)) {
-      return;
-    }
     // find the first matching route
     for (WebRoute route in routes) {
       if (route.isMatch(url, !relaxedSlash)) {
@@ -242,7 +240,7 @@ class WebRouter extends PolymerElement {
         return;
       }
     }
-    fireEvent(WebEvent.routeNotFound, eventDetail, this);
+    fireRouteNotFound(this, url.path);
   }
 
   /// Plays the core-animated-pages animation (if required) and scrolls to hash.
@@ -259,6 +257,12 @@ class WebRouter extends PolymerElement {
       activeRoute.scrollToHash();
     }
   }
+
+  /// Returns a stream of route-not-found events. See [fireRouteNotFound].
+  ElementStream<CustomEvent> get onRouteNotFound {
+  	return this.on[WebEvent.routeNotFound];
+  }
+
 }
 
 /// Joins (concatenates) two patch together. Adds or removes a slash between

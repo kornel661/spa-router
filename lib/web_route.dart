@@ -220,15 +220,11 @@ class WebRoute extends PolymerElement with Observable {
       return;
     }
     uri = url;
-    Map<String, Object> eventDetail = {
-      'path': url.path,
-      'route': this,
-      'oldRoute': router.activeRoute
-    };
-    if (!fireEvent(WebEvent.activateRouteStart, eventDetail, this)) {
-      return;
-    }
-    if (!fireEvent(WebEvent.activateRouteStart, eventDetail, router)) {
+    // allow user to prevent activation of the route (by calling event.preventDefault()).
+    if (!fireRouteActivate(this,
+            path: url.path, newRoute: this, oldRoute: router.activeRoute) ||
+        !fireRouteActivate(router,
+            path: url.path, newRoute: this, oldRoute: router.activeRoute)) {
       return;
     }
 

@@ -58,7 +58,20 @@
 		<span hero hero-id="myHero" id="goto">My hero!</span><br><br>
 	</template>
 	<script type="application/dart">
-		export 'package:polymer/init.dart';
+		import 'dart:html';
+		import 'package:polymer/polymer.dart';
+		import 'package:web_router/web_router.dart';
+		main() => initPolymer();
+
+		@initMethod
+		realMain() {
+			Polymer.onReady.then((_) {
+				Element elem = querySelector('web-router');
+				print(elem);
+				WebRouter router = querySelector('web-router') as WebRouter;
+				router.onRouteNotFound.listen(() => print(':-o'));
+			});
+		}
 	</script>
 </body>
 </html>
