@@ -352,6 +352,11 @@ class WebRoute extends PolymerElement with Observable {
     }
     new Future(delayedScroll);
   }
+
+  /// Returns a stream of route-activate events. See [fireRouteActivate].
+  ElementStream<CustomEvent> get onRouteActivate {
+    return this.on[WebEvent.routeActivate];
+  }
 }
 
 /// Trusting node validator class to validate anything imported by CoreAjax.

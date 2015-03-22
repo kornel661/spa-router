@@ -66,10 +66,8 @@
 		@initMethod
 		realMain() {
 			Polymer.onReady.then((_) {
-				Element elem = querySelector('web-router');
-				print(elem);
 				WebRouter router = querySelector('web-router') as WebRouter;
-				router.onRouteNotFound.listen(() => print(':-o'));
+				router.onRouteNotFound.listen((e) => print('route-not-found :-): ${e}'));
 			});
 		}
 	</script>

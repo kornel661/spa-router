@@ -174,8 +174,9 @@ class WebRouter extends PolymerElement {
         window.onPopState.listen((PopStateEvent e) => _update());
     // mark router as initialized
     _isInitialized = true;
-    // load the web component for the current route
-    _update();
+    // load the web component for the current route (in [Furute] to give routes
+    // a chance to update their internal state (e.g., _uriMatcher)
+    new Future(_update);
   }
 
   /// clean up global event listeners
@@ -260,9 +261,16 @@ class WebRouter extends PolymerElement {
 
   /// Returns a stream of route-not-found events. See [fireRouteNotFound].
   ElementStream<CustomEvent> get onRouteNotFound {
-  	return this.on[WebEvent.routeNotFound];
+    return this.on[WebEvent.routeNotFound];
   }
-
+  /// Returns a stream of route-activate events. See [fireRouteActivate].
+  ElementStream<CustomEvent> get onRouteActivate {
+    return this.on[WebEvent.routeActivate];
+  }
+  /// Returns a stream of address-change events. See [fireAddressChange].
+  ElementStream<CustomEvent> get onAddressChange {
+    return this.on[WebEvent.addressChange];
+  }
 }
 
 /// Joins (concatenates) two patch together. Adds or removes a slash between

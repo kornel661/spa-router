@@ -50,7 +50,7 @@ bool fireRouteNotFound(WebRouter node, String path) {
 /// event.preventDefault() prevents the change from happening.
 bool fireRouteActivate(Node node,
     {String path, WebRoute newRoute, WebRoute oldRoute}) {
-  return _fireEvent(node, WebEvent.routeNotFound, {
+  return _fireEvent(node, WebEvent.routeActivate, {
     'path': path,
     'newRoute': newRoute,
     'oldRoute': oldRoute
