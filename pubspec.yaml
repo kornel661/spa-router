@@ -5,7 +5,6 @@ description: >
   Routing element for HTML5 single page applications (declarative syntax :-))
   written in Polymer.dart.
 homepage: https://github.com/kornel661/web-router
-documentation:
 environment:
   sdk: '>=1.8.5'
 dependencies:
