@@ -30,10 +30,10 @@ import 'package:web_router/src/uri_matcher.dart';
 ///     [queryParams="param1 param2"]>
 ///   </web-route>
 /// ```
-/// String attributes default to empty string with notable exceptions path="/"
-/// and queryParams="*". Boolean attributes default to false.
+/// String attributes default to empty string with notable exceptions [path]="/"
+/// and [queryParams]="*". Boolean attributes default to false.
 ///
-/// * If neither [impl] nor [elem] are set then route instantiates its child
+/// * If neither [impl] nor [elem] are set then the route instantiates its child
 ///   template (if it exists) on activation.
 /// * If [impl] is set, e.g.,
 ///     impl="/path/to/custom_element.html"
@@ -98,7 +98,7 @@ class WebRoute extends PolymerElement with Observable {
   /// If set it specifies a space-separated list of query parameters, e.g.,
   ///   `param1 param2` for `?param1=val1&param2=val...`
   /// that will be forwarded (as attributes) to the route's element.
-  /// If not set then all parameters are forwarded.
+  /// If set to "*" (the default) then all parameters are forwarded.
   @PublishedProperty(reflect: true)
   String queryParams = "*";
 
@@ -184,7 +184,7 @@ class WebRoute extends PolymerElement with Observable {
     this.children = newChildren;
   }
 
-  /// isMatch(uri, strictSlash) tests if the route's path matches the URI's path.
+  /// Tests if the route's path matches the [uri]'s path.
   bool isMatch(RouteUri uri, [bool strictSlash = true]) {
     String uriPath = uri.path;
     String routePath = this.path;
@@ -213,7 +213,8 @@ class WebRoute extends PolymerElement with Observable {
     return (_uriMatcher(uriPath) != null);
   }
 
-  /// Activate the route
+  /// Activates the route with [url] (sets router's active route to [this],
+  /// creates route's content).
   void activate(RouteUri url) {
     if (redirect != null && redirect != "") {
       router.go(redirect, replace: true);

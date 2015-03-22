@@ -35,19 +35,19 @@ class WebRouter extends PolymerElement {
   /// Use full paths for routing (default behaviour is to use hashes).
   @PublishedProperty(reflect: true)
   bool fullPaths = false;
-  /// If relaxedSlash is set then trailing slashes are ignored during matching,
+  /// If [relaxedSlash] is set then trailing slashes are ignored during matching,
   /// i.e., '/home' matches '/home/' as well.
   @PublishedProperty(reflect: true)
   bool relaxedSlash = false;
   /// Whether to use Polymer's core-animated-pages for transitions.
   ///
   /// If the first child of the router is <core-animated-pages> then it is used
-  /// for transitions (router's `transitions` attribute is ignored). This gives
+  /// for transitions (router's [transitions] attribute is ignored). This gives
   /// opportunity to configure <core-animated-pages>.
   /// Otherwise, router creates <core-animated-pages> on its own.
   @published bool animated = false;
   /// Which transitions of the core-animated-pages to use.
-  /// E.g., transitions="hero-transition cross-fade"
+  /// E.g., [transitions]="hero-transition cross-fade"
   /// This attribute is forwarded to core-animated-pages.
   @published String transitions = "";
   /// Whether to bind the router to the route's CustomElement.
@@ -124,13 +124,13 @@ class WebRouter extends PolymerElement {
     return node;
   }
 
-  /// Sets route.router to this and add prefix to route.path.
+  /// Sets [route.router] to [this] and adds prefix to [route.path].
   _prepareRoute(WebRoute route, String pref) {
     route.router = this;
     route.path = _joinPaths(pref, route.path);
   }
 
-  /// Initialize the router: core-animated-pages and listen for events.
+  /// Initializes the router: creates core-animated-pages and listen for events.
   void initialize() {
     if (_isInitialized) {
       return;
@@ -179,7 +179,7 @@ class WebRouter extends PolymerElement {
     new Future(_update);
   }
 
-  /// clean up global event listeners
+  /// Cleans-up global event listeners.
   @override
   void detached() {
     super.detached();
@@ -191,9 +191,9 @@ class WebRouter extends PolymerElement {
     }
   }
 
-  /// go(path, {replace}) - Navigate to the path. E.g.,
+  /// Navigates to [path]. E.g.,
   ///   go('/home')
-  /// Uses window.history.pushState unless replace==true in which case
+  /// Uses window.history.pushState unless [replace]==true in which case
   /// window.history.replaceState is used.
   void go(String path, {bool replace: false}) {
     if (!fullPaths) {
