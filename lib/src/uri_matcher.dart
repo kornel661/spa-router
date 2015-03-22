@@ -33,21 +33,24 @@ class _matcher {
     }
     _uri = uri;
     _uriSegments = new List<String>();
+    _model = new Map<String, String>();
     for (String seg in uri.split('/')) {
       _uriSegments.add(Uri.decodeComponent(seg));
     }
     if (_pat.length > _uriSegments.length) {
-      // match not possible
+      // match not possible (each pattern needs at least one segment)
       _model = null;
       return null;
     }
     if (_pat.length < _uriSegments.length) {
-      // the last pattern needs to be '**'
+      // the last pattern needs to be '**' (to eat >1 segment)
       if (_pat.isEmpty || _pat.last != _matchAll) {
         _model = null;
         return null;
       }
     }
+    // now _pat.length == _uriSegments.length or last [_pat] is '**' and
+    // _uriSegments have more elements
     for (int i = 0; i < _pat.length; i++) {
       if (!_pat[i](_uriSegments[i])) {
         // matching failed

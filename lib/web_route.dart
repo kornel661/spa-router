@@ -14,6 +14,7 @@ import 'package:template_binding/template_binding.dart';
 import 'package:web_router/web_router.dart';
 import 'package:web_router/src/routeuri.dart';
 import 'package:web_router/src/events.dart';
+import 'package:web_router/src/uri_matcher.dart';
 
 /// <web-route> is an element describing a route within a web-router element.
 /// Some syntax (square brackets indicate optional attributes):
@@ -30,7 +31,7 @@ import 'package:web_router/src/events.dart';
 ///   </web-route>
 /// ```
 /// String attributes default to empty string with notable exceptions path="/"
-/// and queryParams=null. Boolean attributes default to false.
+/// and queryParams="*". Boolean attributes default to false.
 ///
 /// * If neither [impl] nor [elem] are set then route instantiates its child
 ///   template (if it exists) on activation.
@@ -58,7 +59,6 @@ class WebRoute extends PolymerElement with Observable {
   /// * The query string (starting at `?`) and hash (starting at `#`) of the uri
   ///   are discraded for the purpose of matching. Query adds bindings, hash
   ///   controls scrolling by default.
-  // TODO(km): add handling of `**`
   @PublishedProperty(reflect: true)
   String path = "/";
   /// Address of the implementation of the element to be shown.
@@ -100,16 +100,20 @@ class WebRoute extends PolymerElement with Observable {
   /// that will be forwarded (as attributes) to the route's element.
   /// If not set then all parameters are forwarded.
   @PublishedProperty(reflect: true)
-  String queryParams = null;
+  String queryParams = "*";
 
   /// Route's router. (Set by the router during initialization.)
   WebRouter router;
   /// Route's current uri.
   RouteUri uri;
 
+  /// [UriMatcher] for route's [path].
+  UriMatcher _uriMatcher = newMatcher("/");
+  /// [ContentElement] of this [WebRoute].
   ContentElement _contentElem;
+  /// [TemplateElement] of this [WebRoute].
   TemplateElement _templateElem;
-  /// CoreAjax element for on-demand retrieving of route's elements.
+  /// [CoreAjax] element for on-demand retrieving of route's elements.
   CoreAjax _ajax;
   /// Was the _ajax.go() executed?
   bool _ajaxLoaded = false;
@@ -132,9 +136,13 @@ class WebRoute extends PolymerElement with Observable {
     });
   }
 
-  /// Fired when `impl` attribute changes. Resets the CoreAjax element.
+  /// Fired when [impl] attribute changes. Resets the CoreAjax element.
   void implChanged() {
     _initializeAjax();
+  }
+  /// Fired when [path] attribute changes. Updates [_uriMatcher].
+  void pathChanged() {
+    _uriMatcher = newMatcher(path);
   }
 
   @override
@@ -142,8 +150,8 @@ class WebRoute extends PolymerElement with Observable {
     super.ready();
     _contentElem = shadowRoot.querySelector("content");
     // don't
-    //_initializeAjax();
-    // it's done on [implChanged]
+    //   _initializeAjax();
+    // it's done in the [implChanged]
     for (Element elem in this.children) {
       if (elem is TemplateElement) {
         _templateElem = elem;
@@ -156,7 +164,7 @@ class WebRoute extends PolymerElement with Observable {
   void remove() {
     if (router != null) {
       router.routes.remove(this);
-      path = path.substring(router.prefix.length - 1);
+      path = path.substring(router.prefix.length);
       router = null;
     }
     clearContent();
@@ -183,13 +191,12 @@ class WebRoute extends PolymerElement with Observable {
     if (!strictSlash) {
       // remove trailing '/'
       while (uriPath.endsWith('/')) {
-        uriPath = uriPath.substring(0, uriPath.length - 1);
+        uriPath = uriPath.substring(0, uriPath.length - 2);
       }
       while (routePath.endsWith('/') && !regex) {
-        routePath = routePath.substring(0, routePath.length - 1);
+        routePath = routePath.substring(0, routePath.length - 2);
       }
     }
-
     // test regular expressions
     if (regex) {
       RegExp regexp;
@@ -202,43 +209,8 @@ class WebRoute extends PolymerElement with Observable {
         return false;
       }
     }
-
-    // if the urlPath is an exact match or '**' then the route is a match
-    if (uriPath == routePath || routePath == '**') {
-      return true;
-    }
-
-    // look for wildcards
-    if (routePath.indexOf('*') == -1 && routePath.indexOf(':') == -1) {
-      // no wildcards and we already made sure it wasn't an exact match so the test fails
-      return false;
-    }
-
-    // example urlPathSegments = ['', example', 'path']
-    List<String> uriPathSegments = uriPath.split('/');
-
-    // example routePathSegments = ['', 'example', '*']
-    List<String> routePathSegments = routePath.split('/');
-
-    // there must be the same number of path segments or it isn't a match
-    if (uriPathSegments.length != routePathSegments.length) {
-      return false;
-    }
-
-    // check equality of each path segment
-    for (int i = 0; i < routePathSegments.length; i++) {
-      // the path segments must be equal, be a wildcard segment '*', or be a path parameter like ':id'
-      String routeSegment = routePathSegments[i];
-      if (routeSegment != uriPathSegments[i] &&
-          routeSegment != '*' &&
-          !routeSegment.startsWith(':')) {
-        // the path segment wasn't the same string and it wasn't a wildcard or parameter
-        return false;
-      }
-    }
-
-    // nothing failed, the route matches the URL.
-    return true;
+    // usual [path] matching
+    return (_uriMatcher(uriPath) != null);
   }
 
   /// Activate the route
@@ -273,8 +245,11 @@ class WebRoute extends PolymerElement with Observable {
     if (impl != null && impl != "") {
       // discern the name of the element to create
       if (elem == null || elem == "") {
-        elem =
-            impl.split('/').last.replaceAll('.html', '').replaceAll('_', '-');
+        elem = impl.split('/').last;
+        if (elem.endsWith('.html')) {
+          elem = elem.substring(0, elem.length - 5);
+        }
+        elem = elem.replaceAll(new RegExp(r'[^a-zA-Z]'), '-');
       }
       // import custom element or template
       if (!_ajaxLoaded) {
@@ -297,6 +272,11 @@ class WebRoute extends PolymerElement with Observable {
 
   /// Creates custom element elem. Definition of elem needs to be loaded already.
   void _createCustomElem() {
+    if (elem == null || elem == "") {
+      window.console
+          .error("web-route: can't guess the name of the element `elem`");
+      return;
+    }
     Element customElem = document.createElement(elem);
     customElem.attributes.addAll(model);
     if (bindRouter || router.bindRouter) {
@@ -313,7 +293,7 @@ class WebRoute extends PolymerElement with Observable {
     append(customElem);
   }
 
-  /// Returns model for the route's element (for binding).
+  /// Returns model for the [WebRoute]'s element (for binding).
   Map<String, String> get model {
     Map<String, String> model = new Map<String, String>();
     if (uri == null) {
@@ -325,40 +305,35 @@ class WebRoute extends PolymerElement with Observable {
     }
     // regular expressions can't have path variables
     if (!regex) {
-      // example urlPathSegments = ['', example', 'path']
-      List<String> uriSegments = uri.path.split('/');
-      List<String> routeSegments = path.split('/');
-      // get path variables
-      // urlPath '/customer/123'
-      // routePath '/customer/:id'
-      // parses id = '123'
-      for (int i = 0; i < routeSegments.length; i++) {
-        String rSegment = routeSegments[i];
-        if (rSegment.startsWith(':')) {
-          model[rSegment.substring(1)] = Uri.decodeComponent(uriSegments[i]);
-        }
-      }
+      model.addAll(_uriMatcher(uri.path));
     }
     // extract query parameters
+    model.addAll(_queryModel);
+    return model;
+  }
+
+  /// Generates parts of the model from the [uri.search].
+  Map<String, String> get _queryModel {
+    Map<String, String> qModel = new Map<String, String>();
     List<String> qParams = [];
+    List<String> allowedParams;
+    if (this.queryParams != null) {
+      allowedParams = queryParams.split(' ');
+    }
     if (uri.search.length > 1) {
       qParams = uri.search.substring(1).split('&');
       for (String qParam in qParams) {
         List<String> qParamParts = qParam.split('=');
-        if (qParamParts.length > 1) {
-          List<String> allowedParams;
-          if (this.queryParams != null) {
-            allowedParams = queryParams.split(' ');
-          }
-          if (this.queryParams == null ||
+        if (qParamParts.length > 0) {
+          if (this.queryParams == '*' ||
               allowedParams.contains(qParamParts[0])) {
-            model[qParamParts[0]] =
+            qModel[qParamParts[0]] =
                 Uri.decodeQueryComponent(qParamParts.sublist(1).join('='));
           }
         }
       }
     }
-    return model;
+    return qModel;
   }
 
   /// Scrolls to the element with id="hash" or name="hash".
