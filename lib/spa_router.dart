@@ -17,6 +17,7 @@ import 'package:spa_router/src/events.dart';
 
 /// spa-router is a router element.
 /// Example usage (square brackets indicate optional attributes):
+/// ```
 ///   <spa-router
 ///     [manualInit]
 ///     [fullPaths]
@@ -28,6 +29,7 @@ import 'package:spa_router/src/events.dart';
 ///       <spa-route ...></spa-route>
 ///       ...
 ///   </spa-router>
+/// ```
 @CustomTag('spa-router')
 class SpaRouter extends PolymerElement {
   /// If manualInit is set one has to initialize the router manually:

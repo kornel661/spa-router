@@ -45,7 +45,7 @@ import 'package:spa_router/src/uri_matcher.dart';
 /// * If just [elem] is set (e.g., elem="my-element") then, upon route's
 ///   activation, new [elem] element is created (e.g., `<my-element>`).
 @CustomTag('spa-route')
-class SpaRoute extends PolymerElement with Observable {
+class SpaRoute extends PolymerElement {
   /// Path of the route. If parent router's prefix is set it is added to the path.
   ///
   /// Unless [regex] is set:
