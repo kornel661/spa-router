@@ -15,7 +15,14 @@ import 'package:spa_router/spa_route.dart';
 import 'package:spa_router/src/routeuri.dart';
 import 'package:spa_router/src/events.dart';
 
-/// spa-router is a router element.
+/// `<spa-router>` is a router element.
+///
+/// Typically it has `<spa-route>` elements as its children. Each `<spa-route>`
+/// element describes a single route, see: [SpaRoute]. Optionally, the first
+/// child of `<spa-router>` may be a `<core-animation-pages>` element which will
+/// be used if [animated] attribute is set. [animated] can be also used on its
+/// own in which case `<core-animated-pages>` will be created by the router.
+///
 /// Example usage (square brackets indicate optional attributes):
 /// ```
 ///   <spa-router
@@ -30,6 +37,10 @@ import 'package:spa_router/src/events.dart';
 ///       ...
 ///   </spa-router>
 /// ```
+///
+/// Attributes [manualInit], [fullPaths], [relaxedSlash], [animated],
+/// [bindRouter] and [noScroll] are boolean. [transitions] takes space-separated
+/// list of transitions and [prefix] takes a path.
 @CustomTag('spa-router')
 class SpaRouter extends PolymerElement {
   /// If manualInit is set one has to initialize the router manually:
@@ -195,7 +206,7 @@ class SpaRouter extends PolymerElement {
   }
 
   /// Navigates to [path]. E.g.,
-  ///   go('/home')
+  ///   `go('/home')`
   /// Uses window.history.pushState unless [replace]==true in which case
   /// window.history.replaceState is used.
   void go(String path, {bool replace: false}) {
@@ -214,7 +225,7 @@ class SpaRouter extends PolymerElement {
     window.dispatchEvent(popStateEvent);
   }
 
-  /// Finds the first <spa-route> that matches the current URL and changes the active route.
+  /// Finds the first `<spa-route>` that matches the current URL and changes the active route.
   /// Wired to PopStateEvents.
   void _update() {
     RouteUri url = new RouteUri.parse(window.location.href, fullPaths);

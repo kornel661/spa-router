@@ -17,8 +17,18 @@ import 'package:spa_router/src/routeuri.dart';
 import 'package:spa_router/src/events.dart';
 import 'package:spa_router/src/uri_matcher.dart';
 
-/// <spa-route> is an element describing a route within a spa-router element.
-/// Some syntax (square brackets indicate optional attributes):
+/// `<spa-route>` is an element describing a route within a `<spa-router>`
+/// element, see [SpaRouter].
+///
+/// `<spa-route>` can be a child of `<spa-router>` or
+/// another `<spa-route>` element (it's called subroute in this case). Being a
+/// subroute is equivalent to being a next sibling of the super-route with path
+/// prefixed with super-route's path.
+///
+/// The first `<template>` element among route's children is used to instatiate
+/// route's content when neither [elem] nor [impl] are set.
+///
+/// Example usage (square brackets indicate optional attributes):
 /// ```
 ///   <spa-route
 ///     [path="/route/path"]
@@ -31,18 +41,19 @@ import 'package:spa_router/src/uri_matcher.dart';
 ///     [queryParams="param1 param2"]>
 ///   </spa-route>
 /// ```
-/// String attributes default to empty string with notable exceptions [path]="/"
-/// and [queryParams]="*". Boolean attributes default to false.
+/// String attributes [impl], [elem], [redirect] and [uriAttr] default to empty
+/// strings but [path]="/" and [queryParams]="*". Boolean attributes [regex],
+/// [bindRouter] and [noScroll] default to false.
 ///
 /// * If neither [impl] nor [elem] are set then the route instantiates its child
 ///   template (if it exists) on activation.
 /// * If [impl] is set, e.g.,
-///     impl="/path/to/custom_element.html"
+///     `impl="/path/to/custom_element.html"`
 ///   then "/path/to/custom_element.html" is fetched and a new element is created.
-///   The element's name is `custom-element` (last segment of the uri without
-///   `.html` and with underscores replaced by dashes or, if [elem] is set, it is
-///   just [elem].
-/// * If just [elem] is set (e.g., elem="my-element") then, upon route's
+///   The element's name is `custom-element` (the last segment of the uri without
+///   `.html` and with non-alpabetical characters replaced by dashes or, if
+///   [elem] is set, it is just [elem].
+/// * If just [elem] is set (e.g., `elem="my-element"`) then, upon route's
 ///   activation, new [elem] element is created (e.g., `<my-element>`).
 @CustomTag('spa-route')
 class SpaRoute extends PolymerElement {
@@ -76,12 +87,12 @@ class SpaRoute extends PolymerElement {
   /// If not empty the route redirects there.
   @PublishedProperty(reflect: true)
   String redirect = "";
-  /// Is the path a regular expression?
+  /// If true, the [path] is interpreted as a regular expression [RegExp].
   @PublishedProperty(reflect: true)
   bool regex = false;
   /// Whether to bind the router to the route's CustomElement.
   ///
-  /// The <custom-element> must be supported by Dart class with public non-final
+  /// The `<custom-element>` must be supported by Dart class with public non-final
   /// field `router` of type [SpaRouter]. The field will be set to route's router
   /// when the element is instantiated.
   @PublishedProperty(reflect: true)
@@ -89,7 +100,7 @@ class SpaRoute extends PolymerElement {
   /// The name of the attribute to which route's uri will be bound. Doesn't
   /// have effect for templates.
   ///
-  /// If uriAttr="nameA" is set then nameA attribute of the route's element
+  /// If `uriAttr="nameA"` is set then nameA attribute of the route's element
   /// will be set to the route's URI.
   @PublishedProperty(reflect: true)
   String uriAttr = "";
@@ -99,7 +110,7 @@ class SpaRoute extends PolymerElement {
   /// If set it specifies a space-separated list of query parameters, e.g.,
   ///   `param1 param2` for `?param1=val1&param2=val...`
   /// that will be forwarded (as attributes) to the route's element.
-  /// If set to "*" (the default) then all parameters are forwarded.
+  /// If set to `*` (the default) then all parameters are forwarded.
   @PublishedProperty(reflect: true)
   String queryParams = "*";
 
@@ -137,11 +148,13 @@ class SpaRoute extends PolymerElement {
     });
   }
 
-  /// Fired when [impl] attribute changes. Resets the CoreAjax element.
+  /// Fired when [impl] attribute changes. Resets the CoreAjax element to fetch
+  /// [impl] next time the route is activated.
   void implChanged() {
     _initializeAjax();
   }
-  /// Fired when [path] attribute changes. Updates [_uriMatcher].
+  /// Fired when [path] attribute changes. Updates [_uriMatcher] to match URIs
+  /// against [path].
   void pathChanged() {
     _uriMatcher = newMatcher(path);
   }
@@ -185,7 +198,7 @@ class SpaRoute extends PolymerElement {
     this.children = newChildren;
   }
 
-  /// Tests if the route's path matches the [uri]'s path.
+  /// Tests if the route's [path] matches the [uri]'s path.
   bool isMatch(RouteUri uri, [bool strictSlash = true]) {
     String uriPath = uri.path;
     String routePath = this.path;
@@ -268,7 +281,7 @@ class SpaRoute extends PolymerElement {
     router.playAnimation();
   }
 
-  /// Creates custom element elem. Definition of elem needs to be loaded already.
+  /// Creates custom element [elem]. Definition of [elem] needs to be loaded already.
   void _createCustomElem() {
     if (elem == null || elem == "") {
       window.console
@@ -291,7 +304,7 @@ class SpaRoute extends PolymerElement {
     append(customElem);
   }
 
-  /// Returns model for the [SpaRoute]'s element (for binding).
+  /// Returns model for the routes's element (for binding to attributes).
   Map<String, String> get model {
     Map<String, String> model = new Map<String, String>();
     if (uri == null) {
@@ -310,7 +323,7 @@ class SpaRoute extends PolymerElement {
     return model;
   }
 
-  /// Generates parts of the model from the [uri.search].
+  /// Generates parts of the [model] from the [uri.search].
   Map<String, String> get _queryModel {
     Map<String, String> qModel = new Map<String, String>();
     List<String> qParams = [];
@@ -334,7 +347,7 @@ class SpaRoute extends PolymerElement {
     return qModel;
   }
 
-  /// Scrolls to the element with id="hash" or name="hash".
+  /// Scrolls to the element with `id="hash"` or `name="hash"`.
   void scrollToHash() {
     if (noScroll || router.noScroll) {
       return;

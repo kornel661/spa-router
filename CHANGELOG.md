@@ -2,6 +2,9 @@ CHANGELOG
 =========
 
 
+#### 0.0.1+2
+  * Improvements to documentation.
+
 #### 0.0.1+1
   * Minor fixes to documentation.
   * Remove unnecessary mixin for SpaRoute.
