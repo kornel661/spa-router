@@ -394,4 +394,4 @@ class _TrusingNodeValidator implements NodeValidator {
 }
 
 /// Trusting node validator to validate anything imported by CoreAjax.
-_TrusingNodeValidator _nodeValidator = new _TrusingNodeValidator();
+final _TrusingNodeValidator _nodeValidator = new _TrusingNodeValidator();

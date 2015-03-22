@@ -1,6 +1,6 @@
-library routeUri;
+library routeuri;
 
-/// Class representing URIs hadled by routes.
+/// Class representing URIs handled by routes.
 ///
 /// Example parse('http://domain.com/other/path?queryParam3=false#/example/path?queryParam1=true&queryParam2=example%20string#middle', false)
 /// gives:
