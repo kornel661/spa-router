@@ -1,14 +1,17 @@
 web-router
 ==========
 
-web-router is a HTML5 router element for routing in single page applications.
-It's implemented in and compatible with Polymer.dart.
+web-router is a HTML5 router element for well-suited for single page applications.
+It's implemented in and compatible with Polymer.dart. It's distributed under MIT
+[license](https://github.com/kornel661/web-router/blob/master/LICENSE).
 
 HTML (declarative) syntax makes it easy to use. See [introduction](https://github.com/kornel661/web-router/blob/master/doc/introduction.md)
-for some more examples.
+for some more examples. Live demos are coming...
 
 The project is still in the EXPERIMENTAL stage and is as for now untested.
-Please feel
+Please feel free to try it out, test and contribute. Source code is available on
+[github](https://github.com/kornel661/web-router). You can also
+[report problem and isses](https://github.com/kornel661/web-router/issues) there.
 
 
 # Introduction
