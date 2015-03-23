@@ -106,8 +106,6 @@ class SpaRouter extends PolymerElement {
   CoreAnimatedPages _coreAnimatedPages;
   /// Subscription of popstate events (for address change monitoring).
   StreamSubscription<PopStateEvent> _popStateSubscription = null;
-  /// Subscription of ends of transitions.
-  StreamSubscription<TransitionEvent> _transitionEndSubscription = null;
 
   @override
   SpaRouter.created() : super.created();
@@ -179,12 +177,9 @@ class SpaRouter extends PolymerElement {
       _coreAnimatedPages.setAttribute('valueattr', 'path');
       this.append(_coreAnimatedPages);
       // clear previous route when animation ends
-      _coreAnimatedPages.onTransitionEnd.listen((TransitionEvent e) {
-        if (_previousRoute != null) {
-          _previousRoute.clearContent();
-          _activeRoute.scrollToHash();
-        }
-      });
+      // _coreAnimatedPages.onTransitionEnd.listen(...) didn't work in Chromium
+      _coreAnimatedPages.addEventListener(
+          'core-animated-pages-transition-end', _transitionEndCallback);
     }
     // listen for URL change events
     _popStateSubscription =
@@ -203,8 +198,9 @@ class SpaRouter extends PolymerElement {
     if (_popStateSubscription != null) {
       _popStateSubscription.cancel();
     }
-    if (_transitionEndSubscription != null) {
-      _transitionEndSubscription.cancel();
+    if (_coreAnimatedPages != null) {
+      _coreAnimatedPages.removeEventListener(
+          'core-animated-pages-transition-end', _transitionEndCallback);
     }
   }
 
@@ -273,6 +269,14 @@ class SpaRouter extends PolymerElement {
       // clearing invisible routes & scrolling taken care in [initialize]
     } else {
       activeRoute.scrollToHash();
+    }
+  }
+
+  /// Called when transition ends. Clears the previous route and scrolls.
+  _transitionEndCallback(Event e) {
+    if (_previousRoute != null) {
+      _previousRoute.clearContent();
+      _activeRoute.scrollToHash();
     }
   }
 

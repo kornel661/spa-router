@@ -2,6 +2,9 @@ ChangeLog
 =========
 
 
+#### 0.0.1+5
+  * Fixed: clearing routes after animation ends.
+
 #### 0.0.1+4
   * Fix issue with finding templates by `SpaRoute`s.
 
