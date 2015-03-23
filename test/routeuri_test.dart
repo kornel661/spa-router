@@ -38,6 +38,17 @@ main() {
     expect(uri.isHashPath, equals(false));
   });
 
+  test('Test comment example, mode=hash', () {
+    RouteUri uri = new RouteUri.parse(
+        'http://domain.com/other/path?queryParam3=false#/example/path?queryParam1=true&queryParam2=example%20string@@hash',
+        false);
+    expect(uri.path, equals('/example/path'));
+    expect(uri.hash, equals('#hash'));
+    expect(
+        uri.search, equals('?queryParam1=true&queryParam2=example%20string'));
+    expect(uri.isHashPath, equals(true));
+  });
+
   test('empty uri', () {
     for (int i = 0; i < 1; i++) {
       RouteUri uri = new RouteUri.parse('', i == 0);

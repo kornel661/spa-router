@@ -17,13 +17,13 @@ import 'package:spa_router/src/routeuri.dart';
 import 'package:spa_router/src/events.dart';
 import 'package:spa_router/src/uri_matcher.dart';
 
-/// `<spa-route>` is an element describing a route within a `<spa-router>`
-/// element, see [SpaRouter].
+/// [SpaRoute] is a class backing `<spa-route>` element. `<spa-route>` describes
+/// a route within [SpaRouter]'s `<spa-router>` element.
 ///
-/// `<spa-route>` can be a child of `<spa-router>` or
-/// another `<spa-route>` element (it's called subroute in this case). Being a
-/// subroute is equivalent to being a next sibling of the super-route with path
-/// prefixed with super-route's path.
+/// Typically `<spa-route>` is a child of `<spa-router>` or another
+/// `<spa-route>` element (it's called subroute in this case). Being a subroute
+/// is equivalent to being a next sibling of the super-route with path prefixed
+/// with super-route's path.
 ///
 /// The first `<template>` element among route's children is used to instatiate
 /// route's content when neither [elem] nor [impl] are set.

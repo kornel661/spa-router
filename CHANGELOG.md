@@ -2,6 +2,11 @@ ChangeLog
 =========
 
 
+#### 0.1.0
+  * Configurable fragment separator through fragSep attribute of the
+    `<spa-router>`, defaults to '@@' (to avoid malformed urls). Example:
+        //some.host/a/b/.../c#/some/path?query@@fragment
+
 #### 0.0.1+5
   * Fixed: clearing routes after animation ends.
 

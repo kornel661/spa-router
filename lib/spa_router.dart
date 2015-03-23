@@ -15,7 +15,7 @@ import 'package:spa_router/spa_route.dart';
 import 'package:spa_router/src/routeuri.dart';
 import 'package:spa_router/src/events.dart';
 
-/// `<spa-router>` is a router element.
+/// [SpaRouter] is a class backing `<spa-router>` element.
 ///
 /// Typically it has `<spa-route>` elements as its children. Each `<spa-route>`
 /// element describes a single route, see: [SpaRoute]. Optionally, the first
@@ -32,7 +32,8 @@ import 'package:spa_router/src/events.dart';
 ///     [animated] [transitions="hero-transition cross-fade"]
 ///     [bindRouter]
 ///     [noScroll]
-///     [prefix="/prefix/path"]>
+///     [prefix="/prefix/path"]
+///     [fragSep="@@"]>
 ///       <spa-route ...></spa-route>
 ///       ...
 ///   </spa-router>
@@ -40,7 +41,7 @@ import 'package:spa_router/src/events.dart';
 ///
 /// Attributes [manualInit], [fullPaths], [relaxedSlash], [animated],
 /// [bindRouter] and [noScroll] are boolean. [transitions] takes space-separated
-/// list of transitions and [prefix] takes a path.
+/// list of transitions, [prefix] takes a path and [fragSep] takes a string.
 @CustomTag('spa-router')
 class SpaRouter extends PolymerElement {
   /// If manualInit is set one has to initialize the router manually:
@@ -74,6 +75,14 @@ class SpaRouter extends PolymerElement {
   bool noScroll = false;
   /// Prefix added to all child routes' paths.
   @published String prefix = "";
+  /// Fragment separator. In the default mode (when [fullPaths] is false)
+  /// [fragSep] is a string that separates path (and query) from the fragment
+  /// (hash). Defaults to '@@'. Example:
+  ///     location 'xxxxx#/some/path?query1=sth##hash
+  /// results in path: '/some/path', query: '?guery1=sth', fragment: '#hash'.
+  /// If [fullPaths] is true [fragSep]'s value is ignored.
+  @PublishedProperty(reflect: true)
+  String fragSep = "@@";
 
   /// Is the router initialized already?
   bool _isInitialized = false;
@@ -205,7 +214,7 @@ class SpaRouter extends PolymerElement {
   }
 
   /// Navigates to [path]. E.g.,
-  ///   `go('/home')`
+  ///     `go('/home')`
   /// Uses window.history.pushState unless [replace]==true in which case
   /// window.history.replaceState is used.
   void go(String path, {bool replace: false}) {
@@ -227,7 +236,7 @@ class SpaRouter extends PolymerElement {
   /// Finds the first `<spa-route>` that matches the current URL and changes the active route.
   /// Wired to PopStateEvents.
   void _update() {
-    RouteUri url = new RouteUri.parse(window.location.href, fullPaths);
+    RouteUri url = new RouteUri.parse(window.location.href, fullPaths, fragSep);
     // fire a address-change event on the spa-router and return early if the user
     // called event.preventDefault()
     if (!fireAddressChange(this, url.path)) {
