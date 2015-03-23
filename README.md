@@ -20,7 +20,7 @@ The easiest way to use spa_router dart package is to add it to the `dependencies
 section of your `pubspec.yaml` like
 ```yaml
 dependencies:
-  spa_router: '^0.1.0'
+  spa_router: '^0.1.0+1'
 ```
 and put necessary imports in your html document:
 ```html
@@ -42,7 +42,7 @@ import 'package:spa_router/spa_route.dart';
 <spa-router>
 	<spa-route path="/">
 		<template>
-			<p>Inline template! <a href="#/test#fragment">test</a></p>
+			<p>Inline template! <a href="#/test@@fragment">test</a></p>
 		</template>
 	</spa-route>
 	<spa-route path="/test"><template ref="referencedTemplate"></template></spa-route>
