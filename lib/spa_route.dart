@@ -162,10 +162,15 @@ class SpaRoute extends PolymerElement {
   @override
   void ready() {
     super.ready();
-    _contentElem = shadowRoot.querySelector("content");
     // don't
     //   _initializeAjax();
     // it's done in the [implChanged]
+    _contentElem = shadowRoot.querySelector("content");
+  }
+
+  @override
+  void domReady() {
+    super.domReady();
     for (Element elem in this.children) {
       if (elem is TemplateElement) {
         _templateElem = elem;
