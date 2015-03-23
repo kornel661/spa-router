@@ -3,7 +3,6 @@
  * Copyright (c) 2015 Kornel Maczyński.
  * For other contributors, see Github.
  */
-@HtmlImport('fast_test.html')
 library fast_test;
 
 import 'dart:async';

@@ -3,7 +3,6 @@
  * Copyright (c) 2015 Kornel Maczyński.
  * For other contributors, see Github.
  */
-@HtmlImport('window_location.html')
 library window_location;
 
 import 'package:polymer/polymer.dart';

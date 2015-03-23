@@ -3,7 +3,7 @@
  * Copyright (c) 2015 Kornel Maczyński, pjv, Erik Ringsmuth.
  * For other contributors, see Github.
  */
-@HtmlImport('package:/spa_router/spa_router.html')
+@HtmlImport('spa_router_nodart.html')
 library spa_router;
 
 import 'package:polymer/polymer.dart';

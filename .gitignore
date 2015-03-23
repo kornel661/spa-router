@@ -4,7 +4,7 @@ pubspec.yaml~
 .gitignore~
 .bowerrc
 bower.json
-web-router-dart_config.yaml
+spa-router-dart_config.yaml
 
 # Don't commit the following directories created by pub.
 build/

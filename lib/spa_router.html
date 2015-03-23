@@ -2,17 +2,9 @@
   SPA router
   Copyright (c) 2015 Kornel Maczyński, pjv, Erik Ringsmuth.
   For other contributors, see Github.
+
+  Users can consume <spa-router> in HTML by importing
+  this file from their HTML files.
 -->
-
-<link rel="import" href="../../packages/polymer/polymer.html">
-<link rel="import" href="../../packages/core_elements/core_animated_pages.html">
-
-<polymer-element
-		name="spa-router"
-		attributes="manualInit fullPaths relaxedSlash animated transitions bindRouter noScroll">
-	<template>
-		<link href="spa_router.css" rel="stylesheet">
-		<content></content>
-	</template>
-	<script type="application/dart" src="spa_router.dart"></script>
-</polymer-element>
+<link rel="import" href="spa_router_nodart.html">
+<script type="application/dart" src="spa_router.dart"></script>
