@@ -2,8 +2,11 @@ ChangeLog
 =========
 
 
+#### 0.0.1+4
+  * Fix issue with finding templates by `SpaRoute`s.
+
 #### 0.0.1+3
-  * Fix to `@HtmlImport`s.
+  * Fix `@HtmlImport`s.
 
 #### 0.0.1+2
   * Improvements to documentation.
