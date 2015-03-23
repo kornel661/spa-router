@@ -1,5 +1,5 @@
 name: spa_router
-version: 0.0.1+2
+version: 0.0.1+3
 author: Kornel Maczyński <kornel661@gmail.com>
 description: >
   Routing element for HTML5 single page applications (declarative syntax :-))

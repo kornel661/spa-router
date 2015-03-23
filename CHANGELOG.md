@@ -1,6 +1,9 @@
-CHANGELOG
+ChangeLog
 =========
 
+
+#### 0.0.1+3
+  * Fix to `@HtmlImport`s.
 
 #### 0.0.1+2
   * Improvements to documentation.
