@@ -171,11 +171,14 @@ class SpaRouter extends PolymerElement {
         _coreAnimatedPages = new CoreAnimatedPages();
         _coreAnimatedPages.setAttribute('transitions', transitions);
       }
+      // flatten route hierarchy and put them in the animated pages
       for (SpaRoute route in routes) {
         _coreAnimatedPages.append(route);
       }
+      // decide which route is selected based on `path` attribute
       _coreAnimatedPages.setAttribute('valueattr', 'path');
       this.append(_coreAnimatedPages);
+      // clear previous route when animation ends
       _coreAnimatedPages.onTransitionEnd.listen((TransitionEvent e) {
         if (_previousRoute != null) {
           _previousRoute.clearContent();

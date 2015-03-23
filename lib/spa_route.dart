@@ -77,7 +77,7 @@ class SpaRoute extends PolymerElement {
   ///
   /// The implementation will be fetched when the route is activated for the
   /// first time. Probably doesn't work with Polymer.dart see:
-  ///   https://code.google.com/p/dart/issues/detail?id=17873
+  ///   <https://code.google.com/p/dart/issues/detail?id=17873>
   @PublishedProperty(reflect: true)
   String impl = "";
   /// Name of the element to be shown.
