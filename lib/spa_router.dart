@@ -77,10 +77,12 @@ class SpaRouter extends PolymerElement {
   @published String prefix = "";
   /// Fragment separator. In the default mode (when [fullPaths] is false)
   /// [fragSep] is a string that separates path (and query) from the fragment
-  /// (hash). Defaults to '@@'. Example:
-  ///     location 'xxxxx#/some/path?query1=sth##hash
-  /// results in path: '/some/path', query: '?guery1=sth', fragment: '#hash'.
-  /// If [fullPaths] is true [fragSep]'s value is ignored.
+  /// (hash). Defaults to `@@`. Example: location
+  /// `xxxxx#/some/path?query1=sth@@hash` results in path: `/some/path`,
+  /// query: `?guery1=sth`, fragment: `#hash`.
+  ///
+  /// If [fullPaths] is true [fragSep]'s value is ignored (and `#` is used as
+  /// a fragment separator - as usual).
   @PublishedProperty(reflect: true)
   String fragSep = "@@";
 

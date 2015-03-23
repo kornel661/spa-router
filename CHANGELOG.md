@@ -2,6 +2,12 @@ ChangeLog
 =========
 
 
+#### 0.1.0+1
+  * Minor fixes to documentation.
+
+#### 0.1.0+1
+  * Fixes in README.md.
+
 #### 0.1.0
   * Configurable fragment separator through fragSep attribute of the
     `<spa-router>`, defaults to '@@' (to avoid malformed urls). Example:
