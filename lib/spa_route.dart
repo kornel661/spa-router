@@ -235,18 +235,24 @@ class SpaRoute extends PolymerElement {
   /// Activates the route with [url] (sets router's active route to [this],
   /// creates route's content).
   void activate(RouteUri url) {
+    // allow user to prevent activation of the route (by calling event.preventDefault()).
+    bool cont = fireRouteActivate(this,
+        path: url.path, newRoute: this, oldRoute: router.activeRoute);
+    cont = fireRouteActivate(router,
+            path: url.path, newRoute: this, oldRoute: router.activeRoute) &&
+        cont;
+    cont = fireRouteDeactivate(router.activeRoute,
+            path: path, newRoute: this) &&
+        cont;
+    if (!cont) {
+      // don't do anythig if the user executed event.preventDefault()
+      return;
+    }
     if (redirect != null && redirect != "") {
       router.go(redirect, replace: true);
       return;
     }
     uri = url;
-    // allow user to prevent activation of the route (by calling event.preventDefault()).
-    if (!fireRouteActivate(this,
-            path: url.path, newRoute: this, oldRoute: router.activeRoute) ||
-        !fireRouteActivate(router,
-            path: url.path, newRoute: this, oldRoute: router.activeRoute)) {
-      return;
-    }
 
     router.activeRoute = this;
     if (!router.animated && router.previousRoute != null) {
@@ -376,6 +382,10 @@ class SpaRoute extends PolymerElement {
   /// Returns a stream of route-activate events. See [fireRouteActivate].
   ElementStream<CustomEvent> get onRouteActivate {
     return this.on[SpaEvent.routeActivate];
+  }
+  /// Returns a stream of route-deactivate events. See [fireRouteDeactivate].
+  ElementStream<CustomEvent> get onRouteDeactivate {
+    return this.on[SpaEvent.routeDeactivate];
   }
 }
 

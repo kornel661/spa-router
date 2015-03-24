@@ -16,7 +16,7 @@ import 'package:spa_router/spa_route.dart';
 /// listen with document.querySelector('node').addEventListener(type, function(event) {
 ///   event.detail; event.preventDefault();
 /// })
-bool _fireEvent(Node node, String type, [Object detail]) {
+bool _fireEvent(Node node, String type, [Map<String, Object> detail]) {
   CustomEvent event =
       new CustomEvent(type, detail: detail, canBubble: false, cancelable: true);
   return node.dispatchEvent(event);
@@ -27,6 +27,7 @@ class SpaEvent {
   static const addressChange = "address-change";
   static const routeNotFound = 'route-not-found';
   static const routeActivate = 'route-activate';
+  static const routeDeactivate = 'route-deactivate';
 }
 
 /// Fires [SpaEvent.addressChange] event on [node] ([SpaRouter]) signaling that
@@ -59,5 +60,19 @@ bool fireRouteActivate(Node node,
     'path': path,
     'newRoute': newRoute,
     'oldRoute': oldRoute
+  });
+}
+
+/// Fires [SpaEvent.routeDeactivate] event on [node] - a route that is about to
+/// be deactivated.
+bool fireRouteDeactivate(SpaRoute node,
+    {String path, SpaRoute newRoute}) {
+	if (node == null) {
+		return true;
+	}
+  return _fireEvent(node, SpaEvent.routeDeactivate, {
+    'path': path,
+    'newRoute': newRoute,
+    'oldRoute': node
   });
 }

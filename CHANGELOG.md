@@ -2,7 +2,10 @@ ChangeLog
 =========
 
 
-### 0.1.1
+#### 0.1.2
+  * New `route-deactivate` event.
+
+#### 0.1.1
   * New `SpaRouter.reload()` method.
 
 #### 0.1.0+2
