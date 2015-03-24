@@ -17,6 +17,7 @@ class WindowLocation extends PolymerElement {
   @published String arg3 = "";
 
   @observable SpaRouter router = null;
+  @observable DateTime now = new DateTime.now();
 
   @override
   WindowLocation.created() : super.created();
@@ -29,5 +30,9 @@ class WindowLocation extends PolymerElement {
 
   void go() {
     router.go("/");
+  }
+
+  void reload() {
+  	router.reload();
   }
 }

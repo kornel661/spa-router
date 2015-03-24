@@ -10,7 +10,7 @@ environment:
 dependencies:
   browser: '^0.10.0+2'
   core_elements: '^0.6.1+2'
-  polymer: '^0.16.0+6'
+  polymer: '^0.16.0+7'
   template_binding: '^0.14.0+2'
 dev_dependencies:
   unittest: '^0.11.5+4'

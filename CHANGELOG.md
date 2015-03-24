@@ -2,7 +2,7 @@ ChangeLog
 =========
 
 
-#### 0.1.0+1
+#### 0.1.0+2
   * Minor fixes to documentation.
 
 #### 0.1.0+1

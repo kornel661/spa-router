@@ -235,6 +235,15 @@ class SpaRouter extends PolymerElement {
     window.dispatchEvent(popStateEvent);
   }
 
+  /// Reloads currently active route (clears and recreates its content).
+  void reload() {
+    if (_activeRoute == null) {
+      return;
+    }
+    _activeRoute.clearContent();
+    _activeRoute.activate(activeUri);
+  }
+
   /// Finds the first `<spa-route>` that matches the current URL and changes the active route.
   /// Wired to PopStateEvents.
   void _update() {
