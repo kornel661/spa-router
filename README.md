@@ -20,7 +20,7 @@ The easiest way to use spa_router dart package is to add it to the `dependencies
 section of your `pubspec.yaml` like
 ```yaml
 dependencies:
-  spa_router: '^0.1.0+2'
+  spa_router: '^0.1.1'
 ```
 and put necessary imports in your html document:
 ```html
