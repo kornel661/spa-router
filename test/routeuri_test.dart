@@ -1,11 +1,11 @@
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_config.dart';
+@TestOn("browser")
+
+import 'package:test/test.dart';
 
 import 'package:spa_router/src/routeuri.dart';
 
 main() {
-  useHtmlConfiguration();
-
+  // TODO: fix tests for a new package (unittest -> test)
   test('Test comment example, without a hash, mode=hash', () {
     RouteUri uri = new RouteUri.parse(
         'http://domain.com/other/path?queryParam3=false#/example/path?queryParam1=true&queryParam2=example%20string',

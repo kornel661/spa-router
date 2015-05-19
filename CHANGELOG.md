@@ -2,6 +2,14 @@ ChangeLog
 =========
 
 
+#### 0.1.2+2
+  * Update dependencies. This package is still experimental and I keep versions
+    of the dependencies as high as possible.
+
+#### 0.1.2+1
+  * Use more Dartian way of handling `core-animated-pages-transition-end`
+    events.
+
 #### 0.1.2
   * New `route-deactivate` event.
 
